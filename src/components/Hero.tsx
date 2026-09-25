@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowRight, ArrowDown } from 'lucide-react';
 import { Hero3DCard } from './Hero3DCard';
+import { Link } from '../router';
 
 interface HeroProps {
   onOpenContact: () => void;
@@ -101,10 +102,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
               Start a project
               <ArrowRight size={14} />
             </button>
-            <a href="#work" className="btn-secondary">
+            <Link to="/work" className="btn-secondary">
               Explore our work
               <ArrowDown size={14} />
-            </a>
+            </Link>
           </div>
 
           {/* Technical Metadata Strip */}
@@ -165,8 +166,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
           paddingTop: '20px'
         }}
       >
-        <a
-          href="#work"
+        <Link
+          to="/work"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -176,9 +177,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContact }) => {
           }}
         >
           <span className="font-mono" style={{ fontSize: '0.72rem', letterSpacing: '0.08em' }}>
-            SCROLL ↓ 01 - WORK
+            VIEW ALL WORK → 01 // WORK
           </span>
-        </a>
+        </Link>
         <span className="font-mono" style={{ fontSize: '0.72rem', color: '#3f3f46' }}>
           LAT 6.5244° N / 3.3792° E
         </span>

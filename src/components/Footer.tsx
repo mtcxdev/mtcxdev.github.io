@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
+import { Link } from '../router';
 
 interface FooterProps {
   onOpenContact: () => void;
@@ -28,18 +29,20 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
         >
           {/* Brand Col */}
           <div style={{ gridColumn: 'span 5' }} className="footer-brand-col">
-            <h3
-              className="font-display"
-              style={{
-                fontSize: '1.4rem',
-                fontWeight: 800,
-                color: '#ffffff',
-                letterSpacing: '-0.02em',
-                marginBottom: '10px'
-              }}
-            >
-              MTCX DEV
-            </h3>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <h3
+                className="font-display"
+                style={{
+                  fontSize: '1.4rem',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  letterSpacing: '-0.02em',
+                  marginBottom: '10px'
+                }}
+              >
+                MTCX DEV
+              </h3>
+            </Link>
             <p className="font-mono" style={{ fontSize: '0.8rem', color: '#71717a', marginBottom: '16px' }}>
               WEB DEVELOPMENT & DESIGN STUDIO
             </p>
@@ -54,11 +57,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenContact }) => {
               NAVIGATION
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <a href="#work" className="nav-link">01 // Work</a>
-              <a href="#services" className="nav-link">02 // Services</a>
-              <a href="#process" className="nav-link">03 // Process</a>
-              <a href="#engineering" className="nav-link">04 // Engineering</a>
-              <a href="#about" className="nav-link">05 // About</a>
+              <Link to="/work" className="nav-link">01 // Work</Link>
+              <Link to="/#services" className="nav-link">02 // Services</Link>
+              <Link to="/#process" className="nav-link">03 // Process</Link>
+              <Link to="/#engineering" className="nav-link">04 // Engineering</Link>
+              <Link to="/#about" className="nav-link">05 // About</Link>
             </div>
           </div>
 

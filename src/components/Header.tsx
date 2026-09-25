@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Menu, X } from 'lucide-react';
+import { Link } from '../router';
+import { useRouter } from '../routerContext';
 
 interface HeaderProps {
   onOpenContact: () => void;
@@ -8,6 +10,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { path } = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,8 +46,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
         }}
       >
         {/* Left: Brand Wordmark */}
-        <a
-          href="#"
+        <Link
+          to="/"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -76,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
           >
             STUDIO
           </span>
-        </a>
+        </Link>
 
         {/* Center: Editorial Navigation (Desktop) */}
         <nav
@@ -87,11 +90,32 @@ export const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
           }}
           className="desktop-nav"
         >
-          <a href="#work" className="nav-link">01 // WORK</a>
-          <a href="#services" className="nav-link">02 // SERVICES</a>
-          <a href="#process" className="nav-link">03 // PROCESS</a>
-          <a href="#engineering" className="nav-link">04 // ENGINEERING</a>
-          <a href="#about" className="nav-link">05 // ABOUT</a>
+          <Link
+            to="/work"
+            className={`nav-link ${path === '/work' ? 'nav-link-active' : ''}`}
+            style={{
+              color: path === '/work' ? '#ffffff' : undefined,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+          >
+            {path === '/work' && (
+              <span
+                style={{
+                  width: '5px',
+                  height: '5px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ffffff'
+                }}
+              />
+            )}
+            01 // WORK
+          </Link>
+          <Link to="/#services" className="nav-link">02 // SERVICES</Link>
+          <Link to="/#process" className="nav-link">03 // PROCESS</Link>
+          <Link to="/#engineering" className="nav-link">04 // ENGINEERING</Link>
+          <Link to="/#about" className="nav-link">05 // ABOUT</Link>
         </nav>
 
         {/* Right: CTA & Mobile Toggle */}
@@ -146,46 +170,50 @@ export const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
             boxShadow: '0 24px 32px rgba(0,0,0,0.8)'
           }}
         >
-          <a
-            href="#work"
+          <Link
+            to="/work"
             className="nav-link"
-            style={{ fontSize: '0.95rem' }}
+            style={{
+              fontSize: '0.95rem',
+              color: path === '/work' ? '#ffffff' : undefined,
+              fontWeight: path === '/work' ? 600 : undefined
+            }}
             onClick={() => setMobileMenuOpen(false)}
           >
-            01 // WORK
-          </a>
-          <a
-            href="#services"
+            01 // WORK (PROJECTS PAGE)
+          </Link>
+          <Link
+            to="/#services"
             className="nav-link"
             style={{ fontSize: '0.95rem' }}
             onClick={() => setMobileMenuOpen(false)}
           >
             02 // SERVICES
-          </a>
-          <a
-            href="#process"
+          </Link>
+          <Link
+            to="/#process"
             className="nav-link"
             style={{ fontSize: '0.95rem' }}
             onClick={() => setMobileMenuOpen(false)}
           >
             03 // PROCESS
-          </a>
-          <a
-            href="#engineering"
+          </Link>
+          <Link
+            to="/#engineering"
             className="nav-link"
             style={{ fontSize: '0.95rem' }}
             onClick={() => setMobileMenuOpen(false)}
           >
             04 // ENGINEERING
-          </a>
-          <a
-            href="#about"
+          </Link>
+          <Link
+            to="/#about"
             className="nav-link"
             style={{ fontSize: '0.95rem' }}
             onClick={() => setMobileMenuOpen(false)}
           >
             05 // ABOUT
-          </a>
+          </Link>
           <div style={{ paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             <span className="tech-label" style={{ display: 'block', marginBottom: '8px' }}>
               DIRECT INQUIRIES
