@@ -70,8 +70,6 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
     let accumulator = 0;
     let width = 1;
     let height = 1;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     const resize = () => {
       const rect = board.getBoundingClientRect();
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -247,7 +245,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, []);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
