@@ -371,3 +371,7 @@
   .x-profile-action{font-size:0;gap:0}
   .x-profile-action svg{width:17px;height:17px}
 }
+
+/* Keep the Payre tagline readable in both themes. */
+.payre-preview-bottom>div span{color:var(--text)!important;opacity:1}
+:root[data-theme="light"] .payre-preview-bottom>div span{color:#171a18!important}
