@@ -83,6 +83,32 @@ function MiniGame({ onReady }: { onReady: () => void }) {
   return <section className="game-dock" id="play" aria-label="Snake game preview"><div className="game-dock-preview"><Suspense fallback={<div className="game-board loading-state">Loading game…</div>}><PixelCatchGame onReady={onReady} /></Suspense></div></section>;
 }
 
+// Intro timing (ms). The overlay can never outlive INTRO_MAX, whatever the network does.
+const INTRO_MIN = 1900, INTRO_MIN_REDUCED = 500, INTRO_EXIT = 700, INTRO_EXIT_REDUCED = 220, INTRO_MAX = 4500;
+const delay = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties;
+
+/** Draws the real page in on load. It reuses the page's own header / game-dock / hero classes, so the geometry matches the site at every breakpoint. */
+function IntroLoader({ exiting, theme }: { exiting: boolean; theme: 'dark' | 'light' }) {
+  return <div className={`intro-loader${exiting ? ' is-exiting' : ''}`} role="status">
+    <span className="loader-sr">Loading MTCX Dev</span>
+    <div className="loader-stage" aria-hidden="true">
+      <div className="ambient-grid"/>
+      <div className="site-header">
+        <span className="brand l-in" style={delay(0)}><span className="brand-mark">MTCX<span>.</span></span><span className="brand-name">MTCX <b>DEV</b></span></span>
+        <nav className="main-nav">{['Personal','About','Stack','GitHub','Contact'].map((label,i)=><a className="l-in" style={delay(90+i*45)} key={label}>{label}</a>)}</nav>
+        <div className="header-actions"><span className="availability l-in" style={delay(260)}><i/> Available for select work</span><span className="theme-toggle l-in" style={delay(300)}>{theme==='dark'?<Sun size={17}/>:<Moon size={17}/>}</span><span className="header-contact l-in" style={delay(340)}>Let’s talk <ArrowUpRight size={15}/></span></div>
+      </div>
+      <div className="game-dock"><span className="snake-start-button l-pill" style={delay(300)}>Play Snake <span>↗</span><i className="loader-snake">{[0,1,2].map(i=><i className="l-cell" style={delay(560+i*90)} key={i}/>)}</i></span></div>
+      <section className="hero section"><div className="hero-copy">
+        <h1><span className="loader-line loader-ink" style={delay(520)}>Ideas into</span><span className="headline-outline loader-line" style={delay(640)}>things that</span><span className="headline-accent loader-line loader-ink" style={delay(760)}>work.</span></h1>
+        <p className="hero-description l-in" style={delay(1000)}>I design, engineer, and ship thoughtful digital products — from expressive interfaces to the systems powering them.</p>
+        <div className="hero-actions"><span className="button button-primary l-in" style={delay(1100)}>Start a conversation <ArrowUpRight size={16}/></span><span className="button button-quiet l-in" style={delay(1180)}>Explore my code <ArrowDownRight size={16}/></span></div>
+        <div className="hero-footnote"><span className="l-in" style={delay(1260)}><Code2 size={14}/> Full-stack engineering</span><span className="l-in" style={delay(1320)}><Globe2 size={14}/> Nigeria · Working worldwide</span></div>
+      </div><span className="scroll-cue l-in" style={delay(1380)}><span>SCROLL TO EXPLORE</span><ArrowDownRight size={15}/></span></section>
+    </div>
+  </div>;
+}
+
 export function App() {
   const [theme,setTheme] = useState<'dark'|'light'>(() => { try { return (localStorage.getItem('mtcx-theme') as 'dark'|'light') || (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'); } catch { return 'dark'; } });
   const [scrolled,setScrolled] = useState(false);
@@ -90,16 +116,19 @@ export function App() {
   const [gameReady,setGameReady] = useState(false);
   const [minimumTimeElapsed,setMinimumTimeElapsed] = useState(false);
   const [introVisible,setIntroVisible] = useState(true);
+  const [reducedMotion] = useState(() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; } });
+  const introReady = githubReady && gameReady && minimumTimeElapsed;
   const markGameReady = useCallback(() => setGameReady(true), []);
   const markGithubReady = useCallback(() => setGithubReady(true), []);
-  useEffect(()=>{const timer=window.setTimeout(()=>setMinimumTimeElapsed(true),1900);return()=>window.clearTimeout(timer)},[]);
-  useEffect(()=>{if(githubReady&&gameReady&&minimumTimeElapsed){const timer=window.setTimeout(()=>setIntroVisible(false),460);return()=>window.clearTimeout(timer)}},[githubReady,gameReady,minimumTimeElapsed]);
-  useEffect(()=>{const timer=window.setTimeout(()=>{setGithubReady(true);setGameReady(true)},8000);return()=>window.clearTimeout(timer)},[]);
+  useEffect(()=>{const timer=window.setTimeout(()=>setMinimumTimeElapsed(true),reducedMotion?INTRO_MIN_REDUCED:INTRO_MIN);return()=>window.clearTimeout(timer)},[reducedMotion]);
+  useEffect(()=>{if(introReady){const timer=window.setTimeout(()=>setIntroVisible(false),reducedMotion?INTRO_EXIT_REDUCED:INTRO_EXIT);return()=>window.clearTimeout(timer)}},[introReady,reducedMotion]);
+  useEffect(()=>{const timer=window.setTimeout(()=>{setGithubReady(true);setGameReady(true);setMinimumTimeElapsed(true)},INTRO_MAX);return()=>window.clearTimeout(timer)},[]);
+  useEffect(()=>{if(!introVisible)return;const pageNodes=Array.from(document.querySelectorAll<HTMLElement>('.site-shell > :not(.intro-loader)'));pageNodes.forEach(node=>node.setAttribute('inert',''));return()=>pageNodes.forEach(node=>node.removeAttribute('inert'))},[introVisible]);
   useEffect(()=>{document.documentElement.dataset.theme=theme; try{localStorage.setItem('mtcx-theme',theme)}catch{}},[theme]);
   useEffect(()=>{const onScroll=()=>setScrolled(window.scrollY>32);onScroll();window.addEventListener('scroll',onScroll,{passive:true});return()=>window.removeEventListener('scroll',onScroll)},[]);
   useEffect(()=>{const nodes=Array.from(document.querySelectorAll<HTMLElement>('.section-heading, .intro-strip, .personal-intro, .personal-detail, .about-note, .payre-showcase, .stack-group, .github-panel, .repo-card, .contact-content'));if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){(entry.target as HTMLElement).classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.12,rootMargin:'0px 0px -35px 0px'});nodes.forEach((node,index)=>{node.dataset.reveal=index%2===0?'left':'right';observer.observe(node)});return()=>observer.disconnect()},[]);
   return <div className="site-shell">
-    {introVisible && <div className={`intro-loader ${githubReady&&gameReady&&minimumTimeElapsed?'is-exiting':''}`} aria-hidden="true"><div className="loader-page"><div className="loader-header"><span className="loader-brand">MTCX<span>.</span></span><span className="loader-header-controls"><i/><i/></span></div><div className="loader-snake-cta"><i/><span>Play Snake <b>↗</b></span><div className="loader-snake"><i/><i/><i/></div></div><section className="loader-hero-real"><div className="loader-hero-copy"><div className="loader-headline-real"><i/><i/><i/></div><div className="loader-description-real"><i/><i/><i/></div><div className="loader-buttons-real"><i/><i/></div><div className="loader-footnotes-real"><i/><i/></div></div><span className="loader-scroll-cue"><i/></span></section><div className="loader-strip-real"><i/><span><i/><i/><i/></span></div><section className="loader-personal-real"><div className="loader-personal-title"><i/><i/><i/></div><div className="loader-personal-content"><div className="loader-song-card"><i/><span><i/><i/><i/></span></div><div className="loader-detail-grid"><i/><i/><i/></div></div></section></div><div className="loader-shimmer" /></div>}
+    {introVisible && <IntroLoader exiting={introReady} theme={theme}/>}
     <div className="ambient-grid" aria-hidden="true"/><header className={`site-header ${scrolled?'is-scrolled':''}`}><a className="brand" href="#top" aria-label="MTCX Dev home"><span className="brand-mark">MTCX<span>.</span></span><span className="brand-name">MTCX <b>DEV</b></span></a><nav className="main-nav" aria-label="Main navigation"><a href="#personal">Personal</a><a href="#about">About</a><a href="#stack">Stack</a><a href="#github">GitHub</a><a href="#contact">Contact</a></nav><div className="header-actions"><span className="availability"><i/> Available for select work</span><button className="theme-toggle" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')} aria-label={`Switch to ${theme==='dark'?'light':'dark'} mode`}>{theme==='dark'?<Sun size={17}/>:<Moon size={17}/>}</button><a className="header-contact" href="#contact">Let’s talk <ArrowUpRight size={15}/></a></div></header>
     <MiniGame onReady={markGameReady}/>
     <main id="top"><section className="hero section"><div className="hero-copy"><h1>Ideas into<br/><span className="headline-outline">things that</span><br/><span className="headline-accent">work.</span></h1><p className="hero-description">I design, engineer, and ship thoughtful digital products — from expressive interfaces to the systems powering them.</p><div className="hero-actions"><a className="button button-primary" href="#contact">Start a conversation <ArrowUpRight size={16}/></a><a className="button button-quiet" href="#github">Explore my code <ArrowDownRight size={16}/></a></div><div className="hero-footnote"><span><Code2 size={14}/> Full-stack engineering</span><span><Globe2 size={14}/> Nigeria · Working worldwide</span></div></div><a className="scroll-cue" href="#about"><span>SCROLL TO EXPLORE</span><ArrowDownRight size={15}/></a></section>
