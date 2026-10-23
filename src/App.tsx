@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, Check, Code2, ExternalLink, Github, Globe2, Layers3, Moon, Play, Sun, Terminal, Zap } from 'lucide-react';
 import './App.css';
+import { PixelScene } from './components/PixelScene';
 
 type Contribution = { date: string; count: number; level: number };
 type Repo = { name: string; description: string | null; html_url: string; language: string | null; stargazers_count: number; updated_at: string };
@@ -9,43 +10,8 @@ const TECH = [
   { group: 'Languages', items: [['TypeScript','typescript'],['JavaScript','javascript'],['Python','python'],['Solidity','solidity'],['HTML5','html5'],['CSS3','css3']] },
   { group: 'Frameworks & UI', items: [['React','react'],['Vite','vite'],['Next.js','nextdotjs'],['Node.js','nodedotjs'],['Tailwind CSS','tailwindcss']] },
   { group: 'Infrastructure & data', items: [['Cloudflare','cloudflare'],['PostgreSQL','postgresql'],['Redis','redis'],['Docker','docker'],['GitHub Actions','githubactions']] },
-  { group: 'Tools & creative', items: [['Git','git'],['Figma','figma'],['Linux','linux'],['Three.js','threedotjs'],['Figma','figma']] },
+  { group: 'Tools & creative', items: [['Git','git'],['Figma','figma'],['Linux','linux'],['Three.js','threedotjs']] },
 ];
-
-function PixelScene() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let frame = 0;
-    let raf = 0;
-    let visible = true;
-    let width = 0, height = 0, dpr = 1;
-    const resize = () => { dpr = Math.min(window.devicePixelRatio || 1, 1.5); width = canvas.clientWidth; height = canvas.clientHeight; canvas.width = Math.floor(width*dpr); canvas.height = Math.floor(height*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); };
-    const draw = () => {
-      if (!visible) return;
-      ctx.clearRect(0,0,width,height);
-      const cell = width < 600 ? 13 : 16;
-      const cols = Math.ceil(width/cell), rows = Math.ceil(height/cell);
-      for (let y=0;y<rows;y++) for (let x=0;x<cols;x++) {
-        const wave = Math.sin(x*.24 + frame*.012) + Math.cos(y*.25 - frame*.009);
-        const glow = Math.max(0, 1 - Math.hypot(x-cols*.65,y-rows*.47)/(Math.max(cols,rows)*.7));
-        const v = (wave+2)/4*.45 + glow*.55;
-        if (v < .23) continue;
-        ctx.fillStyle = `rgba(127,255,185,${Math.min(.7,v*.7)})`;
-        ctx.fillRect(x*cell+2,y*cell+2,Math.max(2,cell-4),Math.max(2,cell-4));
-      }
-      frame++; if (!reduce) raf = requestAnimationFrame(draw);
-    };
-    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { if (reduce) draw(); else { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); } } else cancelAnimationFrame(raf); });
-    resize(); observer.observe(canvas); window.addEventListener('resize',resize); draw();
-    return () => { cancelAnimationFrame(raf); observer.disconnect(); window.removeEventListener('resize',resize); };
-  }, []);
-  return <canvas className="pixel-scene" ref={canvasRef} aria-hidden="true" />;
-}
 
 function GithubActivity() {
   const [contributions,setContributions] = useState<Contribution[]>([]);
