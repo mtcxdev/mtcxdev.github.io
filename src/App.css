@@ -37,3 +37,53 @@
 .site-footer>div a{font-size:11px}
 @media(max-width:760px){.hero-art{height:310px;width:100%}.three-game-board{height:260px}.contrib-timeframes{margin-top:18px}.contrib-timeframes button{flex:1;padding:9px 6px}.contrib-note{font-size:10px}.game-overlay{padding:8px 2px}.site-footer>span:nth-child(2){order:0;width:auto}.site-footer>div{margin-left:auto}}
 @media(prefers-reduced-motion:reduce){.hero-art:before{filter:none}.three-game-board canvas{opacity:.8}}
+
+/* Theme switch: normalize native button rendering across browsers. */
+.site-header .theme-toggle{
+  appearance:none;
+  -webkit-appearance:none;
+  box-sizing:border-box;
+  flex:0 0 38px;
+  width:38px;
+  min-width:38px;
+  height:38px;
+  min-height:38px;
+  padding:0;
+  margin:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  vertical-align:middle;
+  line-height:1;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:var(--surface);
+  color:var(--text);
+  box-shadow:none;
+  outline-offset:4px;
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+.site-header .theme-toggle svg{
+  display:block;
+  width:17px;
+  height:17px;
+  min-width:17px;
+  min-height:17px;
+  flex:0 0 17px;
+  stroke:currentColor;
+  stroke-width:1.8;
+  fill:none;
+  pointer-events:none;
+}
+.site-header .theme-toggle:hover{
+  border-color:var(--accent);
+  background:color-mix(in srgb,var(--accent) 8%,var(--surface));
+}
+.site-header .theme-toggle:focus-visible{
+  outline:2px solid var(--accent);
+}
+@media(max-width:760px){
+  .site-header .header-actions{gap:10px}
+  .site-header .theme-toggle{flex-basis:36px;width:36px;min-width:36px;height:36px;min-height:36px}
+}
