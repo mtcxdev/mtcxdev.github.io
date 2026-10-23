@@ -165,54 +165,65 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         lastTime = time;
       }
 
-      const cell = Math.min(width / COLS, height / ROWS);
-      const offsetX = (width - cell * COLS) / 2;
-      const offsetY = (height - cell * ROWS) / 2;
+      const cellW = width / COLS;
+      const cellH = height / ROWS;
+      const cell = Math.min(cellW, cellH);
+      const offsetX = 0;
+      const offsetY = 0;
       const styles = getComputedStyle(document.documentElement);
-      const accent = styles.getPropertyValue('--accent').trim() || '#8df0b2';
+      const accent = styles.getPropertyValue('--game-snake').trim() || styles.getPropertyValue('--accent').trim() || '#8df0b2';
       const text = styles.getPropertyValue('--text').trim() || '#e8eee9';
-      const line = styles.getPropertyValue('--line').trim() || '#29332d';
+      const line = styles.getPropertyValue('--game-grid').trim() || styles.getPropertyValue('--line').trim() || '#29332d';
       const muted = styles.getPropertyValue('--muted').trim() || '#8a958d';
+      const boardBg = styles.getPropertyValue('--game-bg').trim() || '#0a100c';
+      const wall = styles.getPropertyValue('--game-wall').trim() || accent;
       context.clearRect(0, 0, width, height);
+      context.fillStyle = boardBg;
+      context.fillRect(0, 0, width, height);
 
-      context.fillStyle = line;
-      context.globalAlpha = 0.48;
-      for (let x = 0; x <= COLS; x++) {
-        context.fillRect(offsetX + x * cell, offsetY, Math.max(.5, cell * .025), cell * ROWS);
-      }
-      for (let y = 0; y <= ROWS; y++) {
-        context.fillRect(offsetX, offsetY + y * cell, cell * COLS, Math.max(.5, cell * .025));
-      }
+      context.strokeStyle = line;
+      context.lineWidth = Math.max(1, Math.min(cellW, cellH) * .035);
+      context.globalAlpha = .85;
+      context.beginPath();
+      for (let x = 1; x < COLS; x++) { context.moveTo(x * cellW, 0); context.lineTo(x * cellW, height); }
+      for (let y = 1; y < ROWS; y++) { context.moveTo(0, y * cellH); context.lineTo(width, y * cellH); }
+      context.stroke();
       context.globalAlpha = 1;
+      // Visible perimeter matches the actual collision boundary.
+      context.strokeStyle = wall;
+      context.lineWidth = Math.max(2, Math.min(cellW, cellH) * .12);
+      context.strokeRect(context.lineWidth / 2, context.lineWidth / 2, width - context.lineWidth, height - context.lineWidth);
 
       // Apple-style pixel food.
-      const fx = offsetX + state.food.x * cell;
-      const fy = offsetY + state.food.y * cell;
+      const fx = offsetX + state.food.x * cellW;
+      const fy = offsetY + state.food.y * cellH;
       context.fillStyle = '#ff7b72';
-      context.fillRect(fx + cell * .18, fy + cell * .24, cell * .64, cell * .62);
-      context.fillRect(fx + cell * .32, fy + cell * .12, cell * .36, cell * .76);
+      context.fillRect(fx + cellW * .18, fy + cellH * .24, cellW * .64, cellH * .62);
+      context.fillRect(fx + cellW * .32, fy + cellH * .12, cellW * .36, cellH * .76);
       context.fillStyle = accent;
-      context.fillRect(fx + cell * .52, fy + cell * .04, cell * .23, cell * .16);
+      context.fillRect(fx + cellW * .52, fy + cellH * .04, cellW * .23, cellH * .16);
 
       state.snake.forEach((part, index) => {
-        const inset = Math.max(1, cell * .09);
-        const x = offsetX + part.x * cell + inset;
-        const y = offsetY + part.y * cell + inset;
-        const size = cell - inset * 2;
+        const insetX = Math.max(1, cellW * .09);
+        const insetY = Math.max(1, cellH * .09);
+        const x = offsetX + part.x * cellW + insetX;
+        const y = offsetY + part.y * cellH + insetY;
+        const sizeW = cellW - insetX * 2;
+        const sizeH = cellH - insetY * 2;
         context.globalAlpha = index === 0 ? 1 : Math.max(.42, .92 - index * .035);
         context.fillStyle = accent;
-        context.fillRect(x, y, size, size);
+        context.fillRect(x, y, sizeW, sizeH);
         if (index === 0) {
-          context.fillStyle = '#102019';
+          context.fillStyle = styles.getPropertyValue('--game-eye').trim() || '#102019';
           const eye = Math.max(1.5, cell * .11);
           if (state.direction === 'left' || state.direction === 'right') {
-            const eyeX = state.direction === 'right' ? x + size * .67 : x + size * .2;
-            context.fillRect(eyeX, y + size * .22, eye, eye);
-            context.fillRect(eyeX, y + size * .65, eye, eye);
+            const eyeX = state.direction === 'right' ? x + sizeW * .67 : x + sizeW * .2;
+            context.fillRect(eyeX, y + sizeH * .22, eye, eye);
+            context.fillRect(eyeX, y + sizeH * .65, eye, eye);
           } else {
-            const eyeY = state.direction === 'down' ? y + size * .67 : y + size * .2;
-            context.fillRect(x + size * .22, eyeY, eye, eye);
-            context.fillRect(x + size * .65, eyeY, eye, eye);
+            const eyeY = state.direction === 'down' ? y + sizeH * .67 : y + sizeH * .2;
+            context.fillRect(x + sizeW * .22, eyeY, eye, eye);
+            context.fillRect(x + sizeW * .65, eyeY, eye, eye);
           }
         }
       });
@@ -227,7 +238,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         context.globalAlpha = 1;
       }
       if (state.mode === 'over') {
-        context.fillStyle = 'rgba(5, 12, 8, .68)';
+        context.fillStyle = styles.getPropertyValue('--game-overlay').trim() || 'rgba(5, 12, 8, .68)';
         context.fillRect(0, 0, width, height);
         context.fillStyle = text;
         context.textAlign = 'center';
