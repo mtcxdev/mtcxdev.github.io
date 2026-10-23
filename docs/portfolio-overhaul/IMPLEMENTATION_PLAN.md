@@ -12,7 +12,6 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 - Do not fabricate GitHub metrics or analytics. Label unavailable integrations and document required configuration.
 
 ## Implementation sequence
-
 ### 0. Baseline and discovery
 - [x] Confirm repository `mtcxdev/mtcx`, default branch `main`, and current React + TypeScript + Vite stack through Composio.
 - [x] Identify existing `Portfolio` section and current monochrome design system.
@@ -20,35 +19,39 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 - [ ] Capture a fresh Payre preview from `https://payre.onrender.com` and confirm the target link.
 
 ### 1. Architecture and content
-- [ ] Remove the old projects/work page and related lightbox/project catalogue from the primary experience.
-- [ ] Replace with a single Payre spotlight, using a real screenshot and one outbound website link.
-- [ ] Reorganize the page around intro, GitHub activity, tech stack, process/about, contact, and footer.
-- [ ] Add a reusable content model for technology categories and icon/logo metadata.
+- [x] Remove the old projects/work catalogue and lightbox from the primary app composition.
+- [x] Replace the project grid with one Payre spotlight and a single outbound website link.
+- [x] Reorganize around intro, GitHub activity, tech stack, about, contact, and footer.
+- [ ] Replace the illustrative Payre preview with a captured screenshot of the actual live site.
+- [ ] Validate all technology claims against owned and organization repositories.
 
 ### 2. Visual system and motion
-- [ ] Establish responsive spacing, fluid type, accessible contrast, and a layout that does not clip content.
-- [ ] Add light/dark theme toggle with persisted preference and system-theme fallback.
-- [ ] Add intro/reveal motion with reduced-motion fallback.
-- [ ] Add a Three.js pixel-inspired scene with a static fallback, visibility pausing, and constrained rendering cost.
-- [ ] Add an optional, lightweight Three.js mini-game with clear controls and graceful fallback.
+- [x] Establish responsive spacing, fluid type, accessible contrast, and mobile layouts.
+- [x] Add light/dark theme toggle with persisted preference and system-theme fallback.
+- [x] Add animated pixel field with reduced-motion fallback and visibility-aware rendering.
+- [ ] Replace the canvas pixel field and mini-game with a lazy-loaded, optimized Three.js scene/game.
 
 ### 3. Live integrations
-- [ ] Add live GitHub contribution/activity presentation using official public endpoints or a configured proxy; handle rate limits and loading/error states.
-- [ ] Add live GitHub repository preview links without embedding private information.
-- [ ] Add privacy-conscious public page analytics behind explicit configuration; never claim live analytics when unconfigured.
+- [x] Add live GitHub contribution activity and recent public repositories with loading/error states.
+- [x] Add live GitHub profile/repository preview links.
+- [x] Add privacy-conscious public page analytics behind `VITE_GOATCOUNTER_CODE` configuration.
+- [ ] Verify live endpoints, rate limits, analytics configuration, and privacy notice requirements.
 
 ### 4. Verification and delivery
-- [ ] Run TypeScript/build/lint checks where available and fix errors.
-- [ ] Check responsive layouts, keyboard navigation, theme persistence, reduced motion, and fallback states.
+- [ ] Run TypeScript/build/lint checks and fix errors.
+- [ ] Check keyboard navigation, theme persistence, reduced motion, responsive layout, and fallback states.
 - [ ] Verify Payre screenshot/source and all outbound links.
-- [ ] Record actual tests, known limitations, configuration steps, and commit SHAs in this directory.
+- [ ] Record actual tests, known limitations, configuration steps, and commit SHAs here.
 - [ ] Open a pull request; do not merge without review.
 
-## Progress log
+## Configuration
+- Optional public page analytics: set `VITE_GOATCOUNTER_CODE` to the site's GoatCounter code. If unset, no analytics script is loaded. Do not store secrets in `VITE_*` variables.
+- GitHub activity is loaded from public endpoints for `mtcxdev`. The contribution provider and GitHub API may rate-limit or become unavailable; the UI has a graceful error state.
 
-### 2026-10-23 — discovery
+## Progress log
+### 2026-10-23 — discovery and first implementation milestone
 - Confirmed repository `mtcxdev/mtcx`, default branch `main`.
-- Confirmed React 19, TypeScript, Vite, and Lucide React in the package manifest.
-- Current app imports a `Portfolio` section plus lightbox state and uses a dark architectural grid system. The existing projects catalogue is in `src/data/projects.ts`.
-- Current manifest has no Three.js dependency; dependency and lockfile handling must be resolved as part of the implementation rather than silently assuming it exists.
-- Next: replace the old portfolio composition, add themes and the interactive visual experience, then update this log with verified checks.
+- Confirmed React 19, TypeScript, Vite, Lucide React, and an npm lockfile.
+- Replaced the former `Portfolio`/lightbox composition with a new single-page developer portfolio, a single Payre spotlight, grouped technology stack, live GitHub contribution graph/recent repositories, contact CTA, and mini-game.
+- Added light/dark theme persistence, responsive layouts, reduced-motion styling, and optional GoatCounter configuration.
+- Important remaining tasks: capture a real Payre screenshot (the current preview is a CSS mock and must not be represented as an actual screenshot), implement true Three.js rendering/game rather than the initial lightweight canvas, validate technology inventory from organization repos, and run build/lint checks.
