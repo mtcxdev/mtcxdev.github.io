@@ -1,95 +1,275 @@
-import { useEffect, useRef, useState } from 'react';
-import * as THREE from 'three';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-type MovingObject = { mesh: THREE.Group; speed: number; phase: number; kind: 'energy' | 'fragment' };
+type Point = { x: number; y: number };
+type Direction = 'up' | 'down' | 'left' | 'right';
+type Mode = 'demo' | 'playing' | 'over';
+
+const COLS = 26;
+const ROWS = 14;
+const START: Point[] = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }];
+const VECTORS: Record<Direction, Point> = {
+  up: { x: 0, y: -1 }, down: { x: 0, y: 1 },
+  left: { x: -1, y: 0 }, right: { x: 1, y: 0 },
+};
+
+function same(a: Point, b: Point) { return a.x === b.x && a.y === b.y; }
+function randomFood(snake: Point[]): Point {
+  const free: Point[] = [];
+  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    if (!snake.some(part => part.x === x && part.y === y)) free.push({ x, y });
+  }
+  return free[Math.floor(Math.random() * free.length)] || { x: 1, y: 1 };
+}
 
 export function PixelCatchGame() {
-  const hostRef = useRef<HTMLDivElement>(null);
-  const [playing,setPlaying] = useState(false);
-  const [score,setScore] = useState(0);
-  const [round,setRound] = useState(0);
-  const playingRef = useRef(false);
-  const scoreRef = useRef(0);
-  const pointer = useRef({x:0,y:0});
-  useEffect(()=>{playingRef.current=playing},[playing]);
-  useEffect(()=>{
-    const host=hostRef.current;if(!host)return;
-    const scene=new THREE.Scene();
-    const camera=new THREE.PerspectiveCamera(40,1,.1,100);camera.position.set(0,0,12);
-    const renderer=new THREE.WebGLRenderer({alpha:true,antialias:false,powerPreference:'low-power'});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
-    renderer.setClearColor(0x000000,0);
-    renderer.outputColorSpace=THREE.SRGBColorSpace;
-    host.appendChild(renderer.domElement);
-    const accent=new THREE.Color(0x8df0b2);
-    const player=new THREE.Group();scene.add(player);
-    const voxelGeometry=new THREE.BoxGeometry(.22,.22,.22);
-    const voxelMaterial=new THREE.MeshBasicMaterial({color:accent,transparent:true,opacity:.92});
-    const positions:[[number,number,number],[number,number,number],[number,number,number],[number,number,number],[number,number,number]]=[
-      [0,0,0],[.22,0,0],[-.22,0,0],[0,.22,0],[0,-.22,0]
-    ];
-    positions.forEach(([x,y,z],i)=>{const voxel=new THREE.Mesh(voxelGeometry,voxelMaterial);voxel.position.set(x,y,z);voxel.scale.setScalar(i===0?1.25:.85);player.add(voxel)});
-    const playerGlow=new THREE.PointLight(0x6ff5ad,1.6,3);player.add(playerGlow);
-    const energyGeometry=new THREE.OctahedronGeometry(.19,0);
-    const energyMaterial=new THREE.MeshBasicMaterial({color:0xd0ffe1,wireframe:false});
-    const fragmentGeometry=new THREE.IcosahedronGeometry(.25,0);
-    const fragmentMaterial=new THREE.MeshBasicMaterial({color:0x639b7a,wireframe:true,transparent:true,opacity:.7});
-    const objects:MovingObject[]=[];
-    for(let i=0;i<15;i++){
-      const kind=i%3===0?'fragment':'energy';
-      const mesh=new THREE.Group();
-      const core=new THREE.Mesh(kind==='energy'?energyGeometry:fragmentGeometry,kind==='energy'?energyMaterial:fragmentMaterial);
-      mesh.add(core);
-      if(kind==='energy'){const halo=new THREE.Mesh(new THREE.OctahedronGeometry(.31,0),new THREE.MeshBasicMaterial({color:accent,wireframe:true,transparent:true,opacity:.28}));mesh.add(halo)}
-      mesh.position.set((Math.random()-.5)*10,(Math.random()-.5)*5.4,-Math.random()*5);
-      scene.add(mesh);objects.push({mesh,speed:.012+Math.random()*.016,phase:Math.random()*Math.PI*2,kind});
-    }
-    const starCount=180;
-    const starPositions=new Float32Array(starCount*3);
-    for(let i=0;i<starCount;i++){starPositions[i*3]=(Math.random()-.5)*13;starPositions[i*3+1]=(Math.random()-.5)*7;starPositions[i*3+2]=-Math.random()*8}
-    const starGeometry=new THREE.BufferGeometry();starGeometry.setAttribute('position',new THREE.BufferAttribute(starPositions,3));
-    const stars=new THREE.Points(starGeometry,new THREE.PointsMaterial({color:0x91b8a0,size:.025,transparent:true,opacity:.5}));scene.add(stars);
-    const sparks:THREE.Mesh[]=[];
-    const sparkGeometry=new THREE.BoxGeometry(.045,.045,.045);
-    const sparkMaterial=new THREE.MeshBasicMaterial({color:accent,transparent:true,opacity:.7});
-    for(let i=0;i<30;i++){const spark=new THREE.Mesh(sparkGeometry,sparkMaterial);spark.position.set((Math.random()-.5)*10,(Math.random()-.5)*6,-Math.random()*4);spark.userData={drift:Math.random()*.018+.006,phase:Math.random()*6};scene.add(spark);sparks.push(spark)}
-    const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let raf=0,tick=0,visible=true,width=1,height=1,lastScoreAt=0;
-    const onPointerMove=(event:PointerEvent)=>{const r=host.getBoundingClientRect();pointer.current.x=((event.clientX-r.left)/r.width-.5)*9;pointer.current.y=((event.clientY-r.top)/r.height-.5)*4.5};
-    const onPointerDown=()=>{if(!playingRef.current){scoreRef.current=0;setScore(0);setPlaying(true)}};
-    const onKey=(event:KeyboardEvent)=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(event.key))event.preventDefault();const step=.35;if(event.key==='ArrowLeft'||event.key.toLowerCase()==='a')pointer.current.x-=step;if(event.key==='ArrowRight'||event.key.toLowerCase()==='d')pointer.current.x+=step;if(event.key==='ArrowUp'||event.key.toLowerCase()==='w')pointer.current.y+=step;if(event.key==='ArrowDown'||event.key.toLowerCase()==='s')pointer.current.y-=step};
-    host.addEventListener('pointermove',onPointerMove,{passive:true});
-    renderer.domElement.addEventListener('pointerdown',onPointerDown);
-    window.addEventListener('keydown',onKey);
-    const resize=new ResizeObserver(()=>{width=Math.max(1,host.clientWidth);height=Math.max(1,host.clientHeight);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix()});resize.observe(host);resize.observe(document.documentElement);
-    const visibility=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;if(visible){cancelAnimationFrame(raf);raf=requestAnimationFrame(draw)}else cancelAnimationFrame(raf)});visibility.observe(host);
-    const draw=()=>{
-      if(!visible)return;tick+=.016;
-      const demoX=Math.sin(tick*.58)*3.3,demoY=Math.cos(tick*.43)*1.4;
-      const targetX=playingRef.current?pointer.current.x:demoX;
-      const targetY=playingRef.current?pointer.current.y:demoY;
-      player.position.x+=(THREE.MathUtils.clamp(targetX,-4.7,4.7)-player.position.x)*.055;
-      player.position.y+=(THREE.MathUtils.clamp(targetY,-2.5,2.5)-player.position.y)*.055;
-      player.rotation.z+=(Math.sin(tick*.8)*.09-player.rotation.z)*.04;
-      player.rotation.x=Math.sin(tick*.6)*.08;
-      objects.forEach((object)=>{
-        const {mesh,kind}=object;
-        mesh.rotation.x+=kind==='energy'?.012:.004;mesh.rotation.y+=kind==='energy'?.018:-.009;
-        mesh.position.y+=Math.sin(tick*.8+object.phase)*.002;
-        if(playingRef.current){mesh.position.z+=object.speed*2.1;if(mesh.position.z>2){mesh.position.z=-8;mesh.position.x=(Math.random()-.5)*10;mesh.position.y=(Math.random()-.5)*5.4}
-          if(kind==='energy'&&tick-lastScoreAt>.15&&mesh.position.distanceTo(player.position)<.55){lastScoreAt=tick;mesh.position.z=-8;mesh.position.x=(Math.random()-.5)*9;mesh.position.y=(Math.random()-.5)*4.5;scoreRef.current+=1;setScore(scoreRef.current)}
-          if(kind==='fragment'&&mesh.position.distanceTo(player.position)<.42){mesh.position.z=-8;mesh.position.x=(Math.random()-.5)*9;mesh.position.y=(Math.random()-.5)*4.5;scoreRef.current=Math.max(0,scoreRef.current-1);setScore(scoreRef.current)}
-        }else{mesh.position.z+=Math.sin(tick*.3+object.phase)*.001;mesh.position.x+=Math.sin(tick*.25+object.phase)*.002}
-      });
-      sparks.forEach(spark=>{spark.position.y-=spark.userData.drift;if(spark.position.y< -3.5)spark.position.y=3.5;spark.rotation.x+=.006;spark.rotation.y+=.009});
-      stars.rotation.z=Math.sin(tick*.08)*.015;
-      renderer.render(scene,camera);
-      if(!reduce)raf=requestAnimationFrame(draw);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const stateRef = useRef({ mode: 'demo' as Mode, snake: START.map(p => ({ ...p })), food: { x: 16, y: 7 }, direction: 'right' as Direction, queued: 'right' as Direction, score: 0, elapsed: 0, lastStep: 0, demoTurn: 0 });
+  const [mode, setMode] = useState<Mode>('demo');
+  const [score, setScore] = useState(0);
+  const [best, setBest] = useState(0);
+
+  const reset = useCallback((nextMode: Mode) => {
+    const state = stateRef.current;
+    state.mode = nextMode;
+    state.snake = START.map(p => ({ ...p }));
+    state.food = nextMode === 'demo' ? { x: 16, y: 7 } : randomFood(state.snake);
+    state.direction = 'right';
+    state.queued = 'right';
+    state.score = 0;
+    state.elapsed = 0;
+    state.lastStep = 0;
+    state.demoTurn = 0;
+    setScore(0);
+    setMode(nextMode);
+    if (nextMode === 'playing') requestAnimationFrame(() => boardRef.current?.focus());
+  }, []);
+
+  const changeDirection = useCallback((direction: Direction) => {
+    const state = stateRef.current;
+    if (state.mode !== 'playing') return;
+    const current = state.queued;
+    const opposite = (a: Direction, b: Direction) =>
+      (a === 'up' && b === 'down') || (a === 'down' && b === 'up') ||
+      (a === 'left' && b === 'right') || (a === 'right' && b === 'left');
+    if (!opposite(current, direction)) state.queued = direction;
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const board = boardRef.current;
+    const context = canvas?.getContext('2d');
+    if (!canvas || !board || !context) return;
+    let frame = 0;
+    let lastTime = 0;
+    let accumulator = 0;
+    let width = 1;
+    let height = 1;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const resize = () => {
+      const rect = board.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = Math.max(1, rect.width);
+      height = Math.max(1, rect.height);
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      context.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
-    draw();
-    return()=>{cancelAnimationFrame(raf);visibility.disconnect();resize.disconnect();host.removeEventListener('pointermove',onPointerMove);renderer.domElement.removeEventListener('pointerdown',onPointerDown);window.removeEventListener('keydown',onKey);voxelGeometry.dispose();voxelMaterial.dispose();energyGeometry.dispose();energyMaterial.dispose();fragmentGeometry.dispose();fragmentMaterial.dispose();starGeometry.dispose();(stars.material as THREE.Material).dispose();sparkGeometry.dispose();sparkMaterial.dispose();objects.forEach(o=>{scene.remove(o.mesh);o.mesh.children.forEach(child=>{if(child instanceof THREE.Mesh&&child.material!==energyMaterial&&child.material!==fragmentMaterial)(child.material as THREE.Material).dispose()})});renderer.dispose();renderer.domElement.remove();};
-  },[round]);
-  const start=()=>{scoreRef.current=0;setScore(0);setPlaying(true)};
-  const reset=()=>{setPlaying(false);scoreRef.current=0;setScore(0);setRound(v=>v+1);pointer.current={x:0,y:0}};
-  return <><div className={`game-board three-game-board ${playing?'is-playing':'is-demo'}`} ref={hostRef} role="application" aria-label="Orbit Runner game. Move the pointer or use arrow keys or WASD to collect glowing energy and avoid fragments."><div className="game-overlay"><span>{playing?'Collect energy. Avoid fragments.':' '}</span>{!playing&&<button className="game-play-button" type="button" onClick={start}>Play <span aria-hidden="true">↗</span></button>}</div></div><div className="game-footer"><span>{playing?'MOVE · ARROWS / WASD':'Move the pointer to preview'}</span><span>SCORE <b>{score.toString().padStart(2,'0')}</b></span><button type="button" onClick={playing?reset:start}>{playing?'Reset':'Start'}</button></div></>;
+    const observer = new ResizeObserver(resize);
+    observer.observe(board);
+    resize();
+
+    const step = () => {
+      const state = stateRef.current;
+      if (state.mode === 'demo') {
+        // A gentle loop makes the classic game legible before anyone presses Play.
+        state.elapsed += 1;
+        if (state.elapsed % 7 === 0) {
+          const cycle = Math.floor(state.elapsed / 7) % 44;
+          if (cycle < 12) state.queued = 'right';
+          else if (cycle < 15) state.queued = 'down';
+          else if (cycle < 27) state.queued = 'left';
+          else if (cycle < 30) state.queued = 'up';
+          else state.queued = 'right';
+          if (cycle === 0) {
+            state.snake = [{ x: 5, y: 5 }, { x: 4, y: 5 }, { x: 3, y: 5 }];
+            state.direction = 'right';
+          }
+        }
+      }
+      state.direction = state.queued;
+      const vector = VECTORS[state.direction];
+      const head = state.snake[0];
+      let next = { x: head.x + vector.x, y: head.y + vector.y };
+
+      if (state.mode === 'demo') {
+        if (next.x < 1 || next.x >= COLS - 1 || next.y < 1 || next.y >= ROWS - 1) {
+          state.direction = state.direction === 'right' ? 'down' : state.direction === 'down' ? 'left' : state.direction === 'left' ? 'up' : 'right';
+          state.queued = state.direction;
+          const v = VECTORS[state.direction];
+          next = { x: head.x + v.x, y: head.y + v.y };
+        }
+        if (state.snake.some(part => same(part, next))) {
+          state.snake = START.map(p => ({ ...p }));
+          state.direction = 'right';
+          state.queued = 'right';
+          next = { x: 8, y: 7 };
+        }
+      } else {
+        const hitWall = next.x < 0 || next.x >= COLS || next.y < 0 || next.y >= ROWS;
+        const body = state.snake.slice(0, same(next, state.food) ? undefined : -1);
+        if (hitWall || body.some(part => same(part, next))) {
+          state.mode = 'over';
+          setMode('over');
+          return;
+        }
+      }
+
+      state.snake.unshift(next);
+      if (same(next, state.food)) {
+        if (state.mode === 'playing') {
+          state.score += 10;
+          setScore(state.score);
+          setBest(value => Math.max(value, state.score));
+        }
+        state.food = randomFood(state.snake);
+      } else {
+        state.snake.pop();
+      }
+    };
+
+    const draw = (time: number) => {
+      const state = stateRef.current;
+      if (state.mode === 'playing') {
+        if (!lastTime) lastTime = time;
+        accumulator += Math.min(time - lastTime, 80);
+        lastTime = time;
+        const speed = Math.max(76, 145 - state.score * 0.45);
+        while (accumulator >= speed && state.mode === 'playing') {
+          step();
+          accumulator -= speed;
+        }
+      } else if (state.mode === 'demo') {
+        if (!lastTime) lastTime = time;
+        accumulator += Math.min(time - lastTime, 80);
+        lastTime = time;
+        while (accumulator >= 190) {
+          step();
+          accumulator -= 190;
+        }
+      } else {
+        lastTime = time;
+      }
+
+      const cell = Math.min(width / COLS, height / ROWS);
+      const offsetX = (width - cell * COLS) / 2;
+      const offsetY = (height - cell * ROWS) / 2;
+      const styles = getComputedStyle(document.documentElement);
+      const accent = styles.getPropertyValue('--accent').trim() || '#8df0b2';
+      const text = styles.getPropertyValue('--text').trim() || '#e8eee9';
+      const line = styles.getPropertyValue('--line').trim() || '#29332d';
+      const muted = styles.getPropertyValue('--muted').trim() || '#8a958d';
+      context.clearRect(0, 0, width, height);
+
+      context.fillStyle = line;
+      context.globalAlpha = 0.48;
+      for (let x = 0; x <= COLS; x++) {
+        context.fillRect(offsetX + x * cell, offsetY, Math.max(.5, cell * .025), cell * ROWS);
+      }
+      for (let y = 0; y <= ROWS; y++) {
+        context.fillRect(offsetX, offsetY + y * cell, cell * COLS, Math.max(.5, cell * .025));
+      }
+      context.globalAlpha = 1;
+
+      // Apple-style pixel food.
+      const fx = offsetX + state.food.x * cell;
+      const fy = offsetY + state.food.y * cell;
+      context.fillStyle = '#ff7b72';
+      context.fillRect(fx + cell * .18, fy + cell * .24, cell * .64, cell * .62);
+      context.fillRect(fx + cell * .32, fy + cell * .12, cell * .36, cell * .76);
+      context.fillStyle = accent;
+      context.fillRect(fx + cell * .52, fy + cell * .04, cell * .23, cell * .16);
+
+      state.snake.forEach((part, index) => {
+        const inset = Math.max(1, cell * .09);
+        const x = offsetX + part.x * cell + inset;
+        const y = offsetY + part.y * cell + inset;
+        const size = cell - inset * 2;
+        context.globalAlpha = index === 0 ? 1 : Math.max(.42, .92 - index * .035);
+        context.fillStyle = accent;
+        context.fillRect(x, y, size, size);
+        if (index === 0) {
+          context.fillStyle = '#102019';
+          const eye = Math.max(1.5, cell * .11);
+          if (state.direction === 'left' || state.direction === 'right') {
+            const eyeX = state.direction === 'right' ? x + size * .67 : x + size * .2;
+            context.fillRect(eyeX, y + size * .22, eye, eye);
+            context.fillRect(eyeX, y + size * .65, eye, eye);
+          } else {
+            const eyeY = state.direction === 'down' ? y + size * .67 : y + size * .2;
+            context.fillRect(x + size * .22, eyeY, eye, eye);
+            context.fillRect(x + size * .65, eyeY, eye, eye);
+          }
+        }
+      });
+      context.globalAlpha = 1;
+
+      if (state.mode === 'demo') {
+        context.fillStyle = text;
+        context.globalAlpha = .72;
+        context.font = `600 10px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        context.textAlign = 'left';
+        context.fillText('SNAKE', 12, 18);
+        context.globalAlpha = 1;
+      }
+      if (state.mode === 'over') {
+        context.fillStyle = 'rgba(5, 12, 8, .68)';
+        context.fillRect(0, 0, width, height);
+        context.fillStyle = text;
+        context.textAlign = 'center';
+        context.font = `600 22px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        context.fillText('GAME OVER', width / 2, height / 2 - 4);
+        context.fillStyle = muted;
+        context.font = `11px ui-monospace, SFMono-Regular, Menlo, monospace`;
+        context.fillText('Restart for another run', width / 2, height / 2 + 18);
+      }
+      if (!reduceMotion || state.mode === 'playing') frame = requestAnimationFrame(draw);
+    };
+
+    frame = requestAnimationFrame(draw);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, []);
+
+  const handleKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const keys: Record<string, Direction> = {
+      ArrowUp: 'up', w: 'up', W: 'up',
+      ArrowDown: 'down', s: 'down', S: 'down',
+      ArrowLeft: 'left', a: 'left', A: 'left',
+      ArrowRight: 'right', d: 'right', D: 'right',
+    };
+    if (keys[event.key]) {
+      event.preventDefault();
+      if (stateRef.current.mode !== 'playing') reset('playing');
+      else changeDirection(keys[event.key]);
+    } else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      reset('playing');
+    }
+  };
+
+  return <div className="snake-game">
+    <div className={`game-board snake-board mode-${mode}`} ref={boardRef} tabIndex={0} role="application" aria-label="Snake game. Use arrow keys or WASD to move, or use the touch controls." onKeyDown={handleKey} onPointerDown={() => { if (stateRef.current.mode === 'demo') reset('playing'); }}>
+      <canvas ref={canvasRef} aria-hidden="true" />
+      {mode !== 'playing' && <button className="snake-start-button" type="button" onPointerDown={event => event.stopPropagation()} onClick={() => reset('playing')}>{mode === 'over' ? 'Play again' : 'Play Snake'} <span aria-hidden="true">↗</span></button>}
+    </div>
+    <div className="snake-controls" aria-label="Snake direction controls">
+      <button type="button" aria-label="Move up" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('up'); }}>↑</button>
+      <div><button type="button" aria-label="Move left" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('left'); }}>←</button><button type="button" aria-label="Move down" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('down'); }}>↓</button><button type="button" aria-label="Move right" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('right'); }}>→</button></div>
+    </div>
+    <div className="game-footer snake-footer"><span>{mode === 'playing' ? 'ARROWS / WASD · EAT · GROW' : mode === 'over' ? 'RUN ENDED · TRY AGAIN' : 'CLASSIC SNAKE · READY WHEN YOU ARE'}</span><span>SCORE <b>{String(score).padStart(3, '0')}</b></span><span>BEST <b>{String(best).padStart(3, '0')}</b></span><button type="button" onClick={() => reset('playing')}>{mode === 'playing' ? 'Restart' : 'Start'}</button></div>
+  </div>;
 }
