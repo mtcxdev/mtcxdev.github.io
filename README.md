@@ -1,32 +1,79 @@
-# React + TypeScript + Vite
+# MTCX Dev Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The personal developer portfolio of Timothy, Lead Developer at MTCX Media. The site presents selected work, engineering interests, tools, and public GitHub activity.
 
-Currently, two official plugins are available:
+**Live site:** https://mtcxdev.github.io/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What is included
 
-## React Compiler
+- A responsive portfolio layout with dark and light themes.
+- An interactive, viewport-adaptive Snake game preview.
+- A Three.js-powered pixel-art visual scene.
+- A personal profile section and links to X and GitHub.
+- A featured project section for Payre.
+- A grouped technology stack overview.
+- Live public repository and contribution activity loaded from GitHub-related APIs.
+- Contact links and basic page-view reporting.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Technology
 
-## Expanding the Oxlint configuration
+- React
+- TypeScript
+- Vite
+- Three.js
+- Lucide React
+- Oxlint
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Run locally
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+Use a current Node.js release compatible with the Vite version in `package.json`.
+
+```bash
+git clone https://github.com/mtcxdev/mtcxdev.github.io.git
+cd mtcxdev.github.io
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Vite prints the local development URL in the terminal.
+
+## Quality checks and production build
+
+Run the configured linter:
+
+```bash
+npm run lint
+```
+
+Create a production build:
+
+```bash
+npm run build
+```
+
+Preview the built site locally:
+
+```bash
+npm run preview
+```
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `src/App.tsx` | Main page structure and portfolio sections |
+| `src/App.css` | Site layout, themes, and responsive styling |
+| `src/components/` | Interactive visual and game components |
+| `public/` | Static assets served with the site |
+| `workers/` | Worker-related code used by the project |
+
+## Deployment
+
+The public site is hosted through GitHub Pages. Changes merged to the default branch are published by the repository's configured deployment workflow.
+
+## Links
+
+- [Live portfolio](https://mtcxdev.github.io/)
+- [GitHub profile](https://github.com/mtcxdev)
+- [X profile](https://x.com/mtcxdev)
+- [Email](mailto:devmtcx@gmail.com)
