@@ -245,12 +245,6 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       context.globalAlpha = 1;
 
       if (state.mode === 'demo') {
-        context.fillStyle = text;
-        context.globalAlpha = .72;
-        context.font = `600 10px ui-monospace, SFMono-Regular, Menlo, monospace`;
-        context.textAlign = 'left';
-        context.fillText('SNAKE', 12, 18);
-        context.globalAlpha = 1;
       }
       if (state.mode === 'over') {
         context.fillStyle = styles.getPropertyValue('--game-overlay').trim() || 'rgba(5, 12, 8, .68)';
