@@ -206,3 +206,6 @@
 .game-dock .snake-board canvas{touch-action:pan-y}
 .snake-game-open .snake-board canvas{touch-action:none}
 @media(max-width:760px){.site-header.is-scrolled .brand-mark{font-size:23px}.game-dock{margin-bottom:0}.game-dock-preview{min-width:0}.site-footer .footer-links a{min-width:16px;justify-content:center}}
+
+.contrib-day{max-width:none;max-height:none}
+.contrib-legend .contrib-day{width:10px;height:10px;max-width:10px;max-height:10px}
