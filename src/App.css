@@ -209,3 +209,58 @@
 
 .contrib-day{max-width:none;max-height:none}
 .contrib-legend .contrib-day{width:10px;height:10px;max-width:10px;max-height:10px}
+
+
+/* Immersive Snake-first landing experience */
+.intro-loader{position:fixed;inset:0;z-index:3000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#050706;color:#edf4ee;animation:intro-loader-exit .45s ease 0s both}
+.intro-loader-mark{font:800 clamp(64px,12vw,112px)/.9 var(--font-display);letter-spacing:-.12em;animation:intro-mark-in .65s cubic-bezier(.2,.75,.25,1) both}
+.intro-loader-mark span{color:#8df0b2}
+.intro-loader-track{width:min(180px,42vw);height:2px;overflow:hidden;background:#25332a}
+.intro-loader-track i{display:block;width:38%;height:100%;background:#8df0b2;animation:intro-loader-progress 1.05s ease-in-out infinite}
+.intro-loader-caption{font:9px var(--font-mono);letter-spacing:.18em;color:#89958c}
+@keyframes intro-mark-in{from{opacity:0;transform:translateY(12px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes intro-loader-progress{from{transform:translateX(-110%)}to{transform:translateX(370%)}}
+@keyframes intro-loader-exit{to{opacity:0;visibility:hidden;pointer-events:none}}
+.game-dock{width:100%;max-width:none;height:clamp(250px,34vw,390px);margin:0;display:block;padding:0;overflow:hidden;position:relative;z-index:1;isolation:isolate}
+.game-dock:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--bg) 12%,transparent) 38%,var(--bg) 100%)}
+.game-dock-preview{position:absolute;inset:0;min-width:0;opacity:.72;filter:brightness(.72) blur(1.2px);mask-image:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%)}
+.game-dock .snake-game{height:100%;width:100%;display:block}
+.game-dock .snake-board{height:100%;width:100%;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;touch-action:pan-y}
+.game-dock .snake-board canvas{filter:brightness(.78);touch-action:pan-y}
+.game-dock .snake-start-button{top:50%;bottom:auto;left:50%;transform:translate(-50%,-50%);z-index:3;border:1px solid color-mix(in srgb,var(--accent) 76%,transparent);padding:13px 21px;background:rgba(4,8,5,.84);backdrop-filter:blur(12px);font-size:12px;box-shadow:0 8px 35px #0005}
+.game-dock .snake-start-button:hover{transform:translate(-50%,-50%) scale(1.04)}
+.game-dock .snake-footer{display:none}
+.hero{z-index:2;margin-top:clamp(-190px,-15vw,-110px);padding-top:100px;background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--bg) 84%,transparent) 22%,var(--bg) 48%)}
+.hero-copy{padding-top:14px}
+.hero h1{margin-top:0}
+.hero-kicker{display:none}
+.headline-outline{-webkit-text-stroke:1.25px var(--text);text-shadow:0 1px 0 color-mix(in srgb,var(--text) 12%,transparent)}
+.hero-description,.section-lead,.about-note p,.repo-card p,.loading-state{color:color-mix(in srgb,var(--text) 72%,var(--muted))}
+.about-note h3,.stack-group-label h3,.repo-card-title strong{color:var(--text)}
+.about-note{background:color-mix(in srgb,var(--surface) 38%,transparent)}
+.stack-item{background:color-mix(in srgb,var(--surface) 94%,transparent);border:1px solid color-mix(in srgb,var(--line) 140%,transparent)}
+.repo-card{background:color-mix(in srgb,var(--surface) 96%,transparent);border:1px solid color-mix(in srgb,var(--line) 140%,transparent)}
+.github-panel{background:color-mix(in srgb,var(--surface) 96%,transparent);border:1px solid color-mix(in srgb,var(--line) 140%,transparent)}
+.snake-game-open{z-index:99999!important;background:#030504!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overflow:hidden!important;isolation:isolate;padding:clamp(16px,4vw,52px)!important}
+.snake-game-open:before{background:radial-gradient(ellipse at 50% 35%,rgba(141,240,178,.07),transparent 68%)}
+.snake-game-open .snake-board{flex:0 1 min(66vh,680px);height:min(66vh,680px);min-height:240px;width:min(100%,1100px);background:rgba(10,16,12,.4);border:1px solid rgba(141,240,178,.15);border-radius:18px;touch-action:none}
+.snake-game-open .snake-board canvas{touch-action:none}
+.snake-game-open .snake-start-button{top:50%;bottom:auto;transform:translate(-50%,-50%)}
+.snake-game-open .snake-footer{flex-shrink:0}
+@media(max-width:760px){
+ .game-dock{height:300px}
+ .game-dock-preview{opacity:.66;filter:brightness(.68) blur(1.4px)}
+ .hero{margin-top:-125px;padding-top:82px;padding-bottom:58px}
+ .hero-copy{padding-top:0}
+ .game-dock .snake-start-button{padding:12px 18px}
+ .snake-game-open{justify-content:center;gap:14px;padding:14px!important}
+ .snake-game-open .snake-board{flex:0 1 58vh;height:58vh;min-height:250px;border-radius:14px}
+ .snake-modal-top{width:100%}
+ .snake-game-open .snake-footer{width:100%;gap:10px;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .intro-loader-mark,.intro-loader-track i{animation:none}
+ .intro-loader-track i{width:100%}
+ .intro-loader{animation-duration:.01ms}
+ .game-dock-preview{filter:brightness(.7)}
+}
