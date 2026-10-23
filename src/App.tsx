@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, Check, Code2, ExternalLink, Github, Globe2, Layers3, Moon, Play, Sun, Terminal, Zap } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Code2, ExternalLink, GitBranch, Globe2, Layers3, Moon, Play, Sun } from 'lucide-react';
 import './App.css';
-import { PixelScene } from './components/PixelScene';
 
 type Contribution = { date: string; count: number; level: number };
 type Repo = { name: string; description: string | null; html_url: string; language: string | null; stargazers_count: number; updated_at: string };
@@ -10,8 +9,43 @@ const TECH = [
   { group: 'Languages', items: [['TypeScript','typescript'],['JavaScript','javascript'],['Python','python'],['Solidity','solidity'],['HTML5','html5'],['CSS3','css3']] },
   { group: 'Frameworks & UI', items: [['React','react'],['Vite','vite'],['Next.js','nextdotjs'],['Node.js','nodedotjs'],['Tailwind CSS','tailwindcss']] },
   { group: 'Infrastructure & data', items: [['Cloudflare','cloudflare'],['PostgreSQL','postgresql'],['Redis','redis'],['Docker','docker'],['GitHub Actions','githubactions']] },
-  { group: 'Tools & creative', items: [['Git','git'],['Figma','figma'],['Linux','linux'],['Three.js','threedotjs']] },
+  { group: 'Tools & creative', items: [['Git','git'],['Figma','figma'],['Linux','linux'],['Three.js','threedotjs'],['Figma','figma']] },
 ];
+
+function PixelScene() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let frame = 0;
+    let raf = 0;
+    let visible = true;
+    let width = 0, height = 0, dpr = 1;
+    const resize = () => { dpr = Math.min(window.devicePixelRatio || 1, 1.5); width = canvas.clientWidth; height = canvas.clientHeight; canvas.width = Math.floor(width*dpr); canvas.height = Math.floor(height*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); };
+    const draw = () => {
+      if (!visible) return;
+      ctx.clearRect(0,0,width,height);
+      const cell = width < 600 ? 13 : 16;
+      const cols = Math.ceil(width/cell), rows = Math.ceil(height/cell);
+      for (let y=0;y<rows;y++) for (let x=0;x<cols;x++) {
+        const wave = Math.sin(x*.24 + frame*.012) + Math.cos(y*.25 - frame*.009);
+        const glow = Math.max(0, 1 - Math.hypot(x-cols*.65,y-rows*.47)/(Math.max(cols,rows)*.7));
+        const v = (wave+2)/4*.45 + glow*.55;
+        if (v < .23) continue;
+        ctx.fillStyle = `rgba(127,255,185,${Math.min(.7,v*.7)})`;
+        ctx.fillRect(x*cell+2,y*cell+2,Math.max(2,cell-4),Math.max(2,cell-4));
+      }
+      frame++; if (!reduce) raf = requestAnimationFrame(draw);
+    };
+    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { if (reduce) draw(); else { cancelAnimationFrame(raf); raf = requestAnimationFrame(draw); } } else cancelAnimationFrame(raf); });
+    resize(); observer.observe(canvas); window.addEventListener('resize',resize); draw();
+    return () => { cancelAnimationFrame(raf); observer.disconnect(); window.removeEventListener('resize',resize); };
+  }, []);
+  return <canvas className="pixel-scene" ref={canvasRef} aria-hidden="true" />;
+}
 
 function GithubActivity() {
   const [contributions,setContributions] = useState<Contribution[]>([]);
@@ -28,13 +62,13 @@ function GithubActivity() {
   const weeks = useMemo(()=>{ const all=[...contributions]; const pad=(7-(all.length%7))%7; for(let i=0;i<pad;i++) all.push({date:'',count:0,level:0}); const result:Contribution[][]=[]; for(let i=0;i<all.length;i+=7) result.push(all.slice(i,i+7)); return result; },[contributions]);
   return <section className="section github-section" id="github">
     <div className="section-heading"><div><p className="eyebrow">03 / OPEN SOURCE</p><h2>Building in <em>public.</em></h2></div><a className="text-link" href={`https://github.com/${USER}`} target="_blank" rel="noreferrer">View GitHub <ArrowUpRight size={16}/></a></div>
-    <div className="github-panel"><div className="github-panel-top"><div className="github-identity"><img src={`https://github.com/${USER}.png?size=96`} alt=""/><div><strong>@{USER}</strong><span>Live contribution activity</span></div></div><a href={`https://github.com/${USER}?tab=repositories`} target="_blank" rel="noreferrer" aria-label="Browse repositories"><Github size={20}/></a></div>
+    <div className="github-panel"><div className="github-panel-top"><div className="github-identity"><img src={`https://github.com/${USER}.png?size=96`} alt=""/><div><strong>@{USER}</strong><span>Live contribution activity</span></div></div><a href={`https://github.com/${USER}?tab=repositories`} target="_blank" rel="noreferrer" aria-label="Browse repositories"><GitBranch size={20}/></a></div>
       {status==='loading' && <div className="loading-state">Loading public GitHub activity…</div>}
       {status==='error' && <div className="loading-state">GitHub activity is temporarily unavailable. <a href={`https://github.com/${USER}`} target="_blank" rel="noreferrer">Open profile ↗</a></div>}
       {status==='ready' && <><div className="contrib-scroll"><div className="contrib-grid" aria-label="GitHub contribution activity for the last year">{weeks.map((week,i)=><div className="contrib-week" key={i}>{week.map((day,j)=><span key={`${i}-${j}`} className={`contrib-day level-${Math.min(4,day.level||0)}`} title={day.date?`${day.count} contributions on ${day.date}`:'No activity'} />)}</div>)}</div></div><div className="contrib-legend"><span>Less</span>{[0,1,2,3,4].map(n=><i className={`contrib-day level-${n}`} key={n}/>)}<span>More</span><small>Public data · last 12 months</small></div></>}
     </div>
     <div className="repo-heading"><span className="eyebrow">RECENT REPOSITORIES</span><span className="muted">Updated from GitHub</span></div>
-    <div className="repo-grid">{repos.map(repo=><a className="repo-card" key={repo.name} href={repo.html_url} target="_blank" rel="noreferrer"><div className="repo-card-title"><Github size={17}/><strong>{repo.name}</strong><ArrowUpRight size={15}/></div><p>{repo.description||'A project in the open-source workspace.'}</p><div className="repo-meta">{repo.language&&<span><i className="language-dot"/>{repo.language}</span>}<span>★ {repo.stargazers_count}</span></div></a>)}</div>
+    <div className="repo-grid">{repos.map(repo=><a className="repo-card" key={repo.name} href={repo.html_url} target="_blank" rel="noreferrer"><div className="repo-card-title"><GitBranch size={17}/><strong>{repo.name}</strong><ArrowUpRight size={15}/></div><p>{repo.description||'A project in the open-source workspace.'}</p><div className="repo-meta">{repo.language&&<span><i className="language-dot"/>{repo.language}</span>}<span>★ {repo.stargazers_count}</span></div></a>)}</div>
   </section>;
 }
 
@@ -59,7 +93,7 @@ export function App() {
     <section className="section stack-section" id="stack"><div className="section-heading"><div><p className="eyebrow">03 / MY TOOLKIT</p><h2>The tools behind<br/><em>the work.</em></h2></div><p className="section-lead">A living toolkit, grouped by how I use it — not a wall of badges.</p></div><div className="stack-groups">{TECH.map((group,i)=><div className="stack-group" key={group.group}><div className="stack-group-label"><span>0{i+1}</span><h3>{group.group}</h3></div><div className="stack-items">{group.items.map(([name,slug],j)=><div className="stack-item" key={`${name}-${j}`}><img loading="lazy" src={`https://cdn.simpleicons.org/${slug}/${theme==='dark'?'E7E7E7':'202020'}`} alt="" onError={e=>{(e.currentTarget as HTMLImageElement).style.visibility='hidden'}}/><span>{name}</span></div>)}</div></div>)}</div><p className="stack-footnote"><Layers3 size={15}/> Selected technologies based on public projects and current work. The stack evolves with the problem.</p></section>
     <GithubActivity/>
     <section className="section play-section" id="play"><div className="section-heading"><div><p className="eyebrow">04 / EXPERIMENTS</p><h2>Serious about craft.<br/><em>Not always serious.</em></h2></div><p className="section-lead">A small interactive corner for the curious. Because the web can be useful and playful.</p></div><MiniGame/></section>
-    <section className="contact-section" id="contact"><div className="contact-glow"/><div className="contact-content"><p className="eyebrow">HAVE A GOOD ONE IN MIND?</p><h2>Let’s make<br/><em>it real.</em></h2><p>Have a product to build, a tricky problem to solve, or an idea you want to explore? I’m listening.</p><div className="contact-actions"><a className="button button-primary" href="mailto:hello@mtcx.store">Get in touch <ArrowUpRight size={16}/></a><a className="button button-quiet" href={`https://github.com/${USER}`} target="_blank" rel="noreferrer"><Github size={16}/> Follow on GitHub</a></div></div><div className="contact-side"><span>GOOD WORK IS A TEAM SPORT.</span><span>LET’S BUILD SOMETHING USEFUL ↗</span></div></section></main>
+    <section className="contact-section" id="contact"><div className="contact-glow"/><div className="contact-content"><p className="eyebrow">HAVE A GOOD ONE IN MIND?</p><h2>Let’s make<br/><em>it real.</em></h2><p>Have a product to build, a tricky problem to solve, or an idea you want to explore? I’m listening.</p><div className="contact-actions"><a className="button button-primary" href="mailto:hello@mtcx.store">Get in touch <ArrowUpRight size={16}/></a><a className="button button-quiet" href={`https://github.com/${USER}`} target="_blank" rel="noreferrer"><GitBranch size={16}/> Follow on GitHub</a></div></div><div className="contact-side"><span>GOOD WORK IS A TEAM SPORT.</span><span>LET’S BUILD SOMETHING USEFUL ↗</span></div></section></main>
     <footer className="site-footer"><a className="brand" href="#top"><span className="brand-mark">M<span>.</span></span><span className="brand-name">MTCX <b>DEV</b></span></a><span>Designed with intent. Built with care.</span><div><a href={`https://github.com/${USER}`} target="_blank" rel="noreferrer">GitHub <ArrowUpRight size={13}/></a><a href="#top">Back to top ↑</a></div><span className="footer-year">© {new Date().getFullYear()}</span></footer>
   </div>;
 }
