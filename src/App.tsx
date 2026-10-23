@@ -9,9 +9,11 @@ type Repo = { name: string; description: string | null; html_url: string; langua
 const USER = 'mtcxdev';
 const TECH = [
   { group: 'Languages', items: [['TypeScript','typescript'],['JavaScript','javascript'],['Python','python'],['Solidity','solidity'],['HTML5','html5'],['CSS3','css3']] },
-  { group: 'Frameworks & UI', items: [['React','react'],['Vite','vite'],['Next.js','nextdotjs'],['Node.js','nodedotjs'],['Tailwind CSS','tailwindcss']] },
-  { group: 'Infrastructure & data', items: [['Cloudflare','cloudflare'],['PostgreSQL','postgresql'],['Redis','redis'],['Docker','docker'],['GitHub Actions','githubactions']] },
-  { group: 'Tools & creative', items: [['Git','git'],['Figma','figma'],['Linux','linux'],['Three.js','threedotjs'],['Figma','figma']] },
+  { group: 'Frameworks & runtimes', items: [['React','react'],['Next.js','nextdotjs'],['Vite','vite'],['Node.js','nodedotjs'],['Express','express'],['Tailwind CSS','tailwindcss']] },
+  { group: 'Libraries & packages', items: [['Framer Motion','framer'],['Lucide','lucide'],['Axios','axios'],['Zod','zod'],['Puppeteer','puppeteer'],['Ethers.js','ethers']] },
+  { group: 'Web3 & blockchain', items: [['Hardhat','hardhat'],['Solana web3.js','solana'],['viem','viem'],['Privy','privy']] },
+  { group: 'Data & infrastructure', items: [['PostgreSQL','postgresql'],['Redis','redis'],['Cloudflare','cloudflare'],['Supabase','supabase']] },
+  { group: 'Software & workflow', items: [['Git','git'],['GitHub Actions','githubactions'],['Figma','figma'],['Linux','linux']] },
 ];
 
 function GithubActivity() {

@@ -15,7 +15,7 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 ### 0. Baseline and discovery
 - [x] Confirm repository `mtcxdev/mtcx`, default branch `main`, and current React + TypeScript + Vite stack through Composio.
 - [x] Identify existing `Portfolio` section and current monochrome design system.
-- [ ] Inspect all relevant source components and assets; inventory owned and organization repositories for real stack evidence.
+- [x] Inspect the app and key personal/organization manifests (`mt-flex-jsx`, `mt-flights`, `wasell-ng`, `gasless-ui`, `Payre-IO/payre-web`, and `Payre-IO/payre-checkout`) for stack evidence.
 - [x] Capture a fresh 1200×900 screenshot of `https://payre.onrender.com` and validate the visible page content.
 
 ### 1. Architecture and content
@@ -62,3 +62,10 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 - Replaced the DOM-only click target with a small Three.js cube-catching game that starts on demand and cleans up its renderer/resources.
 - Added `three` and `@types/three` and generated the npm lockfile through npm.
 - Build check after this milestone is pending.
+
+### 2026-10-23 — repository stack audit
+- Queried personal repositories and the `Payre-IO` organization through Composio. Reviewed manifests from the main React/Vite tools, the Next.js SaaS app, flight service, and Payre web/checkout repos.
+- Reorganized the tech stack into Languages, Frameworks & runtimes, Libraries & packages, Web3 & blockchain, Data & infrastructure, and Software & workflow. Categories are based on observed package manifests and project context; individual icon availability depends on Simple Icons.
+- Confirmed production build succeeds after Three.js scene and game became lazy-loaded chunks. The Three.js engine is emitted as its own ~485 kB raw / ~121 kB gzip chunk, so visitors who do not load interactive scenes do not pay its initial download cost.
+- `npm run lint` currently reports extensive warnings/errors inside generated `dist` and dependency/runtime files, not just source; lint is not considered passed. Build verification is the current successful check.
+- Remaining: browser-level responsive/interaction smoke test, update final verification status, and create a draft PR.
