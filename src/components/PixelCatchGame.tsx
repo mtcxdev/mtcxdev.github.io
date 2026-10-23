@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowUpRight } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 type Point = { x: number; y: number };
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -22,7 +23,7 @@ function randomFood(snake: Point[]): Point {
   return free[Math.floor(Math.random() * free.length)] || { x: 1, y: 1 };
 }
 
-export function PixelCatchGame() {
+export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const stateRef = useRef({ mode: 'demo' as Mode, snake: START.map(p => ({ ...p })), food: { x: 16, y: 7 }, direction: 'right' as Direction, queued: 'right' as Direction, score: 0, elapsed: 0, lastStep: 0, demoTurn: 0 });
@@ -30,6 +31,7 @@ export function PixelCatchGame() {
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => { onReady?.(); }, [onReady]);
   const touchStartRef = useRef<{x:number;y:number}|null>(null);
 
   const reset = useCallback((nextMode: Mode) => {
@@ -237,7 +239,7 @@ export function PixelCatchGame() {
         context.font = `11px ui-monospace, SFMono-Regular, Menlo, monospace`;
         context.fillText('Restart for another run', width / 2, height / 2 + 18);
       }
-      if (!reduceMotion || state.mode === 'playing') frame = requestAnimationFrame(draw);
+      frame = requestAnimationFrame(draw);
     };
 
     frame = requestAnimationFrame(draw);
@@ -290,7 +292,7 @@ export function PixelCatchGame() {
     }
   };
 
-  return <div className={`snake-game ${isOpen ? 'snake-game-open' : ''}`}>
+  const gameMarkup = <div className={`snake-game ${isOpen ? 'snake-game-open' : ''}`}>
     {isOpen && <div className="snake-modal-top"><span><b>Snake</b><small>ARROW KEYS · WASD · SWIPE</small></span><button type="button" aria-label="Exit game" onClick={closeGame}><span>×</span> Exit</button></div>}
     <div className={`game-board snake-board mode-${mode}`} ref={boardRef} tabIndex={0} role="application" aria-label="Snake game. Use arrow keys or WASD to move, or swipe to change direction." onKeyDown={handleKey} onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
       <canvas ref={canvasRef} aria-hidden="true" />
@@ -298,4 +300,5 @@ export function PixelCatchGame() {
     </div>
     <div className="game-footer snake-footer"><span>{mode === 'playing' ? 'EAT · GROW · DON’T CRASH' : mode === 'over' ? 'RUN ENDED · TRY AGAIN' : 'CLASSIC SNAKE'}</span><span>SCORE <b>{String(score).padStart(3, '0')}</b></span><span>BEST <b>{String(best).padStart(3, '0')}</b></span><button type="button" onClick={startGame}>{mode === 'playing' ? 'Restart' : 'Play'} <ArrowUpRight size={12}/></button></div>
   </div>;
+  return isOpen ? createPortal(gameMarkup, document.body) : gameMarkup;
 }
