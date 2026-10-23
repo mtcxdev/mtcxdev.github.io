@@ -1,0 +1,11 @@
+name = "mtcx-portfolio-page-views"
+main = "src/index.ts"
+compatibility_date = "2026-10-23"
+
+[[kv_namespaces]]
+binding = "PAGE_VIEWS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+# Comma-separated exact origins; do not include paths or trailing slashes.
+ALLOWED_ORIGINS = "https://YOUR-PORTFOLIO-DOMAIN"
