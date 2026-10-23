@@ -223,10 +223,10 @@
 @keyframes intro-loader-exit{to{opacity:0;visibility:hidden;pointer-events:none}}
 .game-dock{width:100%;max-width:none;height:clamp(250px,34vw,390px);margin:0;display:block;padding:0;overflow:hidden;position:relative;z-index:1;isolation:isolate}
 .game-dock:after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--bg) 12%,transparent) 38%,var(--bg) 100%)}
-.game-dock-preview{position:absolute;inset:0;z-index:1;min-width:0;opacity:.72;filter:brightness(.72) blur(1.2px);mask-image:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%)}
+.game-dock-preview{position:absolute;inset:0;z-index:1;min-width:0;opacity:1;filter:none;mask-image:none;-webkit-mask-image:none}
 .game-dock .snake-game{height:100%;width:100%;display:block}
-.game-dock .snake-board{height:100%;width:100%;margin:0;border:0;border-radius:0;background:transparent;box-shadow:none;touch-action:pan-y}
-.game-dock .snake-board canvas{filter:brightness(.78);touch-action:pan-y}
+.game-dock .snake-board{height:100%;width:100%;margin:0;border:0;border-radius:0;background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--bg) 28%,transparent) 45%,var(--bg) 100%);box-shadow:none;touch-action:pan-y}
+.game-dock .snake-board canvas{filter:brightness(.7);mask-image:linear-gradient(to bottom,#000 0%,#000 34%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 34%,transparent 100%);touch-action:pan-y}
 .game-dock .snake-start-button{top:50%;bottom:auto;left:50%;transform:translate(-50%,-50%);z-index:3;border:1px solid color-mix(in srgb,var(--accent) 76%,transparent);padding:13px 21px;background:rgba(4,8,5,.84);backdrop-filter:blur(12px);font-size:12px;box-shadow:0 8px 35px #0005}
 .game-dock .snake-start-button:hover{transform:translate(-50%,-50%) scale(1.04)}
 .game-dock .snake-footer{display:none}
@@ -249,7 +249,7 @@
 .snake-game-open .snake-footer{flex-shrink:0}
 @media(max-width:760px){
  .game-dock{height:300px}
- .game-dock-preview{opacity:.66;filter:brightness(.68) blur(1.4px)}
+ .game-dock-preview{opacity:1;filter:none}
  .hero{margin-top:-125px;padding-top:82px;padding-bottom:58px}
  .hero-copy{padding-top:0}
  .game-dock .snake-start-button{padding:12px 18px}
@@ -262,8 +262,6 @@
  .intro-loader-mark,.intro-loader-track i{animation:none}
  .intro-loader-track i{width:100%}
  .intro-loader{animation-duration:.01ms}
- .game-dock-preview{filter:brightness(.7)}
+ .game-dock .snake-board canvas{filter:brightness(.7)}
 }
 
-/* Keep the centered play control clear while the preview fades into the hero. */
-.game-dock-preview .snake-start-button{filter:none;opacity:1;}
