@@ -3,3 +3,37 @@
 
 .page-views{display:inline-flex;align-items:center;justify-content:center;gap:7px;color:var(--muted);font:10px var(--font-mono);white-space:nowrap}.page-views svg{opacity:.8}.page-views-label{letter-spacing:.08em}.page-views strong{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
 @media(max-width:600px){.page-views{gap:5px}.page-views-label{display:none}}
+
+
+/* Quiet, immersive motion and interaction refinements */
+.hero-art{height:430px;border:0;background:transparent;overflow:visible;isolation:isolate}
+.hero-art:before{inset:5%;background:radial-gradient(ellipse at 52% 48%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 68%);filter:blur(16px)}
+.hero-art .pixel-scene{inset:0;width:100%;height:100%;overflow:visible}
+.hero-art .pixel-scene canvas{display:block;width:100%;height:100%;outline:none}
+.hero-art .orbit,.art-topline,.art-bottomline,.art-coordinate{display:none}
+.hero-art:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,var(--bg) 100%);opacity:.22}
+.contrib-timeframes{display:flex;gap:6px;margin-top:22px}
+.contrib-timeframes button{appearance:none;border:1px solid var(--line);background:transparent;color:var(--muted);padding:8px 12px;font:11px var(--font-mono);cursor:pointer;transition:color .2s,border-color .2s,background .2s}
+.contrib-timeframes button:hover,.contrib-timeframes button.is-active{color:var(--text);border-color:var(--accent)}
+.contrib-timeframes button.is-active{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.contrib-note{font-size:11px;line-height:1.65;color:var(--muted);margin-top:18px;max-width:850px}
+.contrib-note a{color:var(--text);text-underline-offset:3px}
+.game-card{border:0;background:transparent;padding:0}
+.game-head h3{font-size:clamp(24px,3vw,34px);margin:0}
+.game-card>.muted{margin-top:10px}
+.three-game-board{height:330px;margin-top:14px;position:relative;overflow:hidden;border:0;background:transparent;background-image:radial-gradient(ellipse at 50% 50%,color-mix(in srgb,var(--accent) 7%,transparent),transparent 67%);isolation:isolate}
+.three-game-board canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:pan-y}
+.game-overlay{position:absolute;inset:0;z-index:1;pointer-events:none;display:flex;align-items:flex-end;justify-content:space-between;padding:12px 4px;color:var(--muted);font:10px var(--font-mono)}
+.game-overlay button{pointer-events:auto}
+.game-play-button{border:1px solid color-mix(in srgb,var(--accent) 60%,transparent);border-radius:999px;padding:10px 16px;background:color-mix(in srgb,var(--bg) 76%,transparent);backdrop-filter:blur(8px);color:var(--text);font:12px var(--font-mono);cursor:pointer;transition:background .2s,transform .2s}
+.game-play-button:hover{background:var(--accent);color:#07140d;transform:translateY(-2px)}
+.game-play-button span{margin-left:10px}
+.game-footer{align-items:center;border-top:1px solid var(--line);padding:14px 0 0}
+.game-footer b{color:var(--accent);font-weight:600;margin-left:8px}
+.game-footer button{padding:6px 0;text-underline-offset:4px;text-decoration:underline}
+.contact-actions{gap:10px}
+.site-footer>span:nth-child(2) a{color:var(--muted);text-decoration:none}
+.site-footer>span:nth-child(2) a:hover{color:var(--text)}
+.site-footer>div a{font-size:11px}
+@media(max-width:760px){.hero-art{height:310px;width:100%}.three-game-board{height:260px}.contrib-timeframes{margin-top:18px}.contrib-timeframes button{flex:1;padding:9px 6px}.contrib-note{font-size:10px}.game-overlay{padding:8px 2px}.site-footer>span:nth-child(2){order:0;width:auto}.site-footer>div{margin-left:auto}}
+@media(prefers-reduced-motion:reduce){.hero-art:before{filter:none}.three-game-board canvas{opacity:.8}}
