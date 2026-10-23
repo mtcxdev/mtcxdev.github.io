@@ -248,6 +248,10 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
   }, [isOpen]);
 
   useEffect(() => {
+    if (isOpen) requestAnimationFrame(() => boardRef.current?.focus());
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { setIsOpen(false); reset('demo'); }
