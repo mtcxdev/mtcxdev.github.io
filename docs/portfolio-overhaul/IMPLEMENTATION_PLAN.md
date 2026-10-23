@@ -33,7 +33,7 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 ### Live integrations
 - [x] Added a live public contribution graph and recent public repositories for `mtcxdev`, with loading/error states.
 - [x] Added direct GitHub profile/repository links.
-- [x] Added optional GoatCounter analytics through `VITE_GOATCOUNTER_CODE`. No analytics script is loaded if the variable is unset.
+- [x] Replaced third-party analytics with a tiny page-view-only UI component backed by a Cloudflare Worker and one JSON document in KV. No third-party analytics script or personal tracking fields.
 
 ### Verification and remaining work
 - [x] `tsc -b` and `vite build` passed after the Three.js components and lazy imports were added. Build output confirmed separate `PixelScene`, `PixelCatchGame`, and Three.js chunks.
@@ -44,7 +44,7 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 - [ ] Review draft PR and CI before merge. No production deployment was triggered.
 
 ## Configuration
-- Optional page analytics: set `VITE_GOATCOUNTER_CODE` to the site's GoatCounter code. If unset, no analytics script is loaded. Do not store secrets in `VITE_*` variables.
+- Page views: deploy `workers/page-views` using `workers/page-views/README.md`, then set `VITE_PAGEVIEWS_API_URL` to the deployed Worker URL. Create a KV namespace and restrict `ALLOWED_ORIGINS` to the portfolio origin. This counter stores only `{pageViews, updatedAt}` as JSON; it does not store IPs or visitor-level data.
 - GitHub activity is loaded from public endpoints for `mtcxdev`. The contribution provider and GitHub API may rate-limit or become unavailable; the UI has a graceful error state.
 
 ## Progress log — 2026-10-23
@@ -56,3 +56,10 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 - `d03cfcf9fe490a79e705477a24cbe39828c48fb0`: aligned tech stack taxonomy to reviewed personal and organization manifests.
 - `813a6f28f2747e4934156710c9390a2be27446ba`: recorded verification status and outstanding follow-ups.
 - Latest cleanup removes all old project-gallery code/data and old screenshots, preserving only `public/projects/payre-live.png`.
+
+### 2026-10-23 — page-view-only analytics
+- Removed the optional GoatCounter script integration.
+- Added a small `PageViews` footer component that displays only a page-view total and makes one increment request per page load.
+- Added a Cloudflare Worker API with GET (read total) and POST (increment) methods, strict allowed-origin configuration, and no visitor-level data collection.
+- Added a Cloudflare KV JSON record containing only `pageViews` and `updatedAt`, plus deployment instructions under `workers/page-views/README.md`.
+- Deployment still requires creating the KV namespace, setting the portfolio origin and `VITE_PAGEVIEWS_API_URL`, then deploying the Worker and portfolio. The counter will remain hidden until the endpoint variable is configured.
