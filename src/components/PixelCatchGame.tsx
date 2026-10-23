@@ -6,18 +6,22 @@ type Point = { x: number; y: number };
 type Direction = 'up' | 'down' | 'left' | 'right';
 type Mode = 'demo' | 'playing' | 'over';
 
-const COLS = 26;
-const ROWS = 14;
-const START: Point[] = [{ x: 7, y: 7 }, { x: 6, y: 7 }, { x: 5, y: 7 }];
+const BASE_COLS = 26;
+const BASE_ROWS = 14;
+const CELL_SIZE = 24;
+function startSnake(cols: number, rows: number): Point[] {
+  const x = Math.max(2, Math.floor(cols / 2));
+  const y = Math.max(1, Math.floor(rows / 2));
+  return [{ x, y }, { x: x - 1, y }, { x: x - 2, y }];}
 const VECTORS: Record<Direction, Point> = {
   up: { x: 0, y: -1 }, down: { x: 0, y: 1 },
   left: { x: -1, y: 0 }, right: { x: 1, y: 0 },
 };
 
 function same(a: Point, b: Point) { return a.x === b.x && a.y === b.y; }
-function randomFood(snake: Point[]): Point {
+function randomFood(snake: Point[], cols: number, rows: number): Point {
   const free: Point[] = [];
-  for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+  for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
     if (!snake.some(part => part.x === x && part.y === y)) free.push({ x, y });
   }
   return free[Math.floor(Math.random() * free.length)] || { x: 1, y: 1 };
@@ -26,7 +30,9 @@ function randomFood(snake: Point[]): Point {
 export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
-  const stateRef = useRef({ mode: 'demo' as Mode, snake: START.map(p => ({ ...p })), food: { x: 16, y: 7 }, direction: 'right' as Direction, queued: 'right' as Direction, score: 0, elapsed: 0, lastStep: 0, demoTurn: 0 });
+  const colsRef = useRef(BASE_COLS);
+  const rowsRef = useRef(BASE_ROWS);
+  const stateRef = useRef({ mode: 'demo' as Mode, snake: startSnake(BASE_COLS, BASE_ROWS), food: { x: 16, y: 7 },  direction: 'right' as Direction, queued: 'right' as Direction, score: 0, elapsed: 0, lastStep: 0, demoTurn: 0 });
   const [mode, setMode] = useState<Mode>('demo');
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
@@ -37,8 +43,8 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
   const reset = useCallback((nextMode: Mode) => {
     const state = stateRef.current;
     state.mode = nextMode;
-    state.snake = START.map(p => ({ ...p }));
-    state.food = nextMode === 'demo' ? { x: 16, y: 7 } : randomFood(state.snake);
+    state.snake = startSnake(colsRef.current, rowsRef.current);
+    state.food = nextMode === 'demo' ? { x: Math.min(colsRef.current - 3, Math.floor(colsRef.current * .62)), y: Math.floor(rowsRef.current / 2) } : randomFood(state.snake, colsRef.current, rowsRef.current);
     state.direction = 'right';
     state.queued = 'right';
     state.score = 0;
@@ -75,6 +81,15 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = Math.max(1, rect.width);
       height = Math.max(1, rect.height);
+      const cols = Math.max(12, Math.floor(width / CELL_SIZE));
+      const rows = Math.max(8, Math.floor(height / CELL_SIZE));
+      if (cols !== colsRef.current || rows !== rowsRef.current) {
+        colsRef.current = cols; rowsRef.current = rows;
+        const state = stateRef.current;
+        state.snake = startSnake(cols, rows);
+        state.food = state.mode === 'demo' ? { x: Math.min(cols - 3, Math.floor(cols * .62)), y: Math.floor(rows / 2) } : randomFood(state.snake, cols, rows);
+        state.direction = 'right'; state.queued = 'right';
+      }
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -89,16 +104,14 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         // A gentle loop makes the classic game legible before anyone presses Play.
         state.elapsed += 1;
         if (state.elapsed % 7 === 0) {
-          const cycle = Math.floor(state.elapsed / 7) % 44;
-          if (cycle < 12) state.queued = 'right';
-          else if (cycle < 15) state.queued = 'down';
-          else if (cycle < 27) state.queued = 'left';
-          else if (cycle < 30) state.queued = 'up';
-          else state.queued = 'right';
-          if (cycle === 0) {
-            state.snake = [{ x: 5, y: 5 }, { x: 4, y: 5 }, { x: 3, y: 5 }];
-            state.direction = 'right';
-          }
+          const cols = colsRef.current, rows = rowsRef.current;
+          const horizontal = Math.max(4, cols - 4), vertical = Math.max(3, rows - 4);
+          const cycle = Math.floor(state.elapsed / 7) % (horizontal * 2 + vertical * 2);
+          if (cycle < horizontal) state.queued = 'right';
+          else if (cycle < horizontal + vertical) state.queued = 'down';
+          else if (cycle < horizontal * 2 + vertical) state.queued = 'left';
+          else state.queued = 'up';
+          if (cycle === 0) { state.snake = startSnake(cols, rows); state.direction = 'right'; }
         }
       }
       state.direction = state.queued;
@@ -107,20 +120,20 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       let next = { x: head.x + vector.x, y: head.y + vector.y };
 
       if (state.mode === 'demo') {
-        if (next.x < 1 || next.x >= COLS - 1 || next.y < 1 || next.y >= ROWS - 1) {
+        if (next.x < 1 || next.x >= colsRef.current - 1 || next.y < 1 || next.y >= rowsRef.current - 1) {
           state.direction = state.direction === 'right' ? 'down' : state.direction === 'down' ? 'left' : state.direction === 'left' ? 'up' : 'right';
           state.queued = state.direction;
           const v = VECTORS[state.direction];
           next = { x: head.x + v.x, y: head.y + v.y };
         }
         if (state.snake.some(part => same(part, next))) {
-          state.snake = START.map(p => ({ ...p }));
+          state.snake = startSnake(colsRef.current, rowsRef.current);
           state.direction = 'right';
           state.queued = 'right';
           next = { x: 8, y: 7 };
         }
       } else {
-        const hitWall = next.x < 0 || next.x >= COLS || next.y < 0 || next.y >= ROWS;
+        const hitWall = next.x < 0 || next.x >= colsRef.current || next.y < 0 || next.y >= rowsRef.current;
         const body = state.snake.slice(0, same(next, state.food) ? undefined : -1);
         if (hitWall || body.some(part => same(part, next))) {
           state.mode = 'over';
@@ -136,7 +149,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
           setScore(state.score);
           setBest(value => Math.max(value, state.score));
         }
-        state.food = randomFood(state.snake);
+        state.food = randomFood(state.snake, colsRef.current, rowsRef.current);
       } else {
         state.snake.pop();
       }
@@ -148,7 +161,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         if (!lastTime) lastTime = time;
         accumulator += Math.min(time - lastTime, 80);
         lastTime = time;
-        const speed = Math.max(76, 145 - state.score * 0.45);
+        const speed = Math.max(100, 175 - state.score * 0.35);
         while (accumulator >= speed && state.mode === 'playing') {
           step();
           accumulator -= speed;
@@ -157,16 +170,18 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         if (!lastTime) lastTime = time;
         accumulator += Math.min(time - lastTime, 80);
         lastTime = time;
-        while (accumulator >= 190) {
+        while (accumulator >= 220) {
           step();
-          accumulator -= 190;
+          accumulator -= 220;
         }
       } else {
         lastTime = time;
       }
 
-      const cellW = width / COLS;
-      const cellH = height / ROWS;
+      const cols = colsRef.current;
+      const rows = rowsRef.current;
+      const cellW = width / cols;
+      const cellH = height / rows;
       const cell = Math.min(cellW, cellH);
       const offsetX = 0;
       const offsetY = 0;
@@ -185,8 +200,8 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       context.lineWidth = Math.max(1, Math.min(cellW, cellH) * .035);
       context.globalAlpha = .85;
       context.beginPath();
-      for (let x = 1; x < COLS; x++) { context.moveTo(x * cellW, 0); context.lineTo(x * cellW, height); }
-      for (let y = 1; y < ROWS; y++) { context.moveTo(0, y * cellH); context.lineTo(width, y * cellH); }
+      for (let x = 1; x < cols; x++) { context.moveTo(x * cellW, 0); context.lineTo(x * cellW, height); }
+      for (let y = 1; y < rows; y++) { context.moveTo(0, y * cellH); context.lineTo(width, y * cellH); }
       context.stroke();
       context.globalAlpha = 1;
       // Visible perimeter matches the actual collision boundary.
