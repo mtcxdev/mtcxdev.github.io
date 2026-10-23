@@ -265,3 +265,59 @@
  .game-dock .snake-board canvas{filter:brightness(.7)}
 }
 
+
+
+/* Final theme polish: softer light surfaces and a CTA that belongs in the pill navbar. */
+.header-contact{
+  border:1px solid transparent;
+  border-radius:999px;
+  padding:10px 16px;
+  background:var(--accent);
+  color:#07140d;
+  font-weight:650;
+  transition:transform .2s ease,background .2s ease,box-shadow .2s ease;
+  box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 16%,transparent);
+}
+.header-contact:hover{
+  transform:translateY(-1px);
+  background:color-mix(in srgb,var(--accent) 90%,white);
+  box-shadow:0 7px 20px color-mix(in srgb,var(--accent) 22%,transparent);
+}
+.site-header.is-scrolled .header-contact{padding:8px 14px}
+:root[data-theme="light"] .site-header{
+  background:color-mix(in srgb,var(--bg) 82%,transparent);
+  border-color:color-mix(in srgb,var(--line) 70%,transparent);
+}
+:root[data-theme="light"] .site-header.is-scrolled{
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  border-color:rgba(24,52,34,.12);
+  box-shadow:0 10px 30px rgba(29,55,36,.09);
+}
+:root[data-theme="light"] .hero-art{
+  border-color:rgba(24,52,34,.12);
+  box-shadow:0 18px 55px rgba(29,55,36,.045);
+}
+:root[data-theme="light"] .about-note{background:transparent}
+:root[data-theme="light"] .stack-item{
+  background:rgba(255,255,255,.78);
+  border:1px solid rgba(24,52,34,.09);
+  box-shadow:0 5px 18px rgba(29,55,36,.035);
+}
+:root[data-theme="light"] .repo-card{
+  background:rgba(255,255,255,.88);
+  border:1px solid rgba(24,52,34,.09);
+  box-shadow:0 7px 24px rgba(29,55,36,.04);
+}
+:root[data-theme="light"] .github-panel{
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(24,52,34,.09);
+  box-shadow:0 14px 36px rgba(29,55,36,.045);
+}
+:root[data-theme="light"] .contact-section{
+  background:linear-gradient(135deg,#edf3eb 0%,#e7efe6 100%);
+}
+:root[data-theme="light"] .headline-outline{-webkit-text-stroke-color:#243d2c}
+@media(max-width:760px){
+  .site-header .header-contact{padding:9px 13px}
+  .site-header.is-scrolled .header-contact{padding:8px 12px}
+}
