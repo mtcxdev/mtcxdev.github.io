@@ -72,7 +72,7 @@ export function PixelCatchGame() {
       player.position.y+=(THREE.MathUtils.clamp(targetY,-2.5,2.5)-player.position.y)*.055;
       player.rotation.z+=(Math.sin(tick*.8)*.09-player.rotation.z)*.04;
       player.rotation.x=Math.sin(tick*.6)*.08;
-      objects.forEach((object,i)=>{
+      objects.forEach((object)=>{
         const {mesh,kind}=object;
         mesh.rotation.x+=kind==='energy'?.012:.004;mesh.rotation.y+=kind==='energy'?.018:-.009;
         mesh.position.y+=Math.sin(tick*.8+object.phase)*.002;
