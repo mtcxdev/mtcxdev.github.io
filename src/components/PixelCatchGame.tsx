@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowUpRight } from 'lucide-react';
 
 type Point = { x: number; y: number };
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -28,6 +29,8 @@ export function PixelCatchGame() {
   const [mode, setMode] = useState<Mode>('demo');
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  const touchStartRef = useRef<{x:number;y:number}|null>(null);
 
   const reset = useCallback((nextMode: Mode) => {
     const state = stateRef.current;
@@ -244,6 +247,32 @@ export function PixelCatchGame() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setIsOpen(false); reset('demo'); }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [isOpen, reset]);
+
+  const startGame = () => { setIsOpen(true); reset('playing'); };
+  const closeGame = () => { setIsOpen(false); reset('demo'); };
+  const handleSwipeStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    const touch = event.changedTouches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+  const handleSwipeEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current;
+    const touch = event.changedTouches[0];
+    touchStartRef.current = null;
+    if (!start) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 22) return;
+    changeDirection(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up'));
+  };
+
   const handleKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const keys: Record<string, Direction> = {
       ArrowUp: 'up', w: 'up', W: 'up',
@@ -261,15 +290,12 @@ export function PixelCatchGame() {
     }
   };
 
-  return <div className="snake-game">
-    <div className={`game-board snake-board mode-${mode}`} ref={boardRef} tabIndex={0} role="application" aria-label="Snake game. Use arrow keys or WASD to move, or use the touch controls." onKeyDown={handleKey} onPointerDown={() => { if (stateRef.current.mode === 'demo') reset('playing'); }}>
+  return <div className={`snake-game ${isOpen ? 'snake-game-open' : ''}`}>
+    {isOpen && <div className="snake-modal-top"><span><b>Snake</b><small>ARROW KEYS · WASD · SWIPE</small></span><button type="button" aria-label="Exit game" onClick={closeGame}><span>×</span> Exit</button></div>}
+    <div className={`game-board snake-board mode-${mode}`} ref={boardRef} tabIndex={0} role="application" aria-label="Snake game. Use arrow keys or WASD to move, or swipe to change direction." onKeyDown={handleKey} onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
       <canvas ref={canvasRef} aria-hidden="true" />
-      {mode !== 'playing' && <button className="snake-start-button" type="button" onPointerDown={event => event.stopPropagation()} onClick={() => reset('playing')}>{mode === 'over' ? 'Play again' : 'Play Snake'} <span aria-hidden="true">↗</span></button>}
+      {mode !== 'playing' && <button className="snake-start-button" type="button" onClick={startGame}>{mode === 'over' ? 'Play again' : 'Play Snake'} <span aria-hidden="true">↗</span></button>}
     </div>
-    <div className="snake-controls" aria-label="Snake direction controls">
-      <button type="button" aria-label="Move up" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('up'); }}>↑</button>
-      <div><button type="button" aria-label="Move left" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('left'); }}>←</button><button type="button" aria-label="Move down" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('down'); }}>↓</button><button type="button" aria-label="Move right" onClick={() => { if (stateRef.current.mode !== 'playing') reset('playing'); else changeDirection('right'); }}>→</button></div>
-    </div>
-    <div className="game-footer snake-footer"><span>{mode === 'playing' ? 'ARROWS / WASD · EAT · GROW' : mode === 'over' ? 'RUN ENDED · TRY AGAIN' : 'CLASSIC SNAKE · READY WHEN YOU ARE'}</span><span>SCORE <b>{String(score).padStart(3, '0')}</b></span><span>BEST <b>{String(best).padStart(3, '0')}</b></span><button type="button" onClick={() => reset('playing')}>{mode === 'playing' ? 'Restart' : 'Start'}</button></div>
+    <div className="game-footer snake-footer"><span>{mode === 'playing' ? 'EAT · GROW · DON’T CRASH' : mode === 'over' ? 'RUN ENDED · TRY AGAIN' : 'CLASSIC SNAKE'}</span><span>SCORE <b>{String(score).padStart(3, '0')}</b></span><span>BEST <b>{String(best).padStart(3, '0')}</b></span><button type="button" onClick={startGame}>{mode === 'playing' ? 'Restart' : 'Play'} <ArrowUpRight size={12}/></button></div>
   </div>;
 }
