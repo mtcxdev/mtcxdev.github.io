@@ -51,7 +51,7 @@ function GithubActivity() {
 }
 
 function MiniGame() {
-  return <div className="game-card"><div className="game-head"><div><h3>Orbit Runner</h3></div></div><p className="muted">Move through the field, collect energy, and avoid the drifting fragments.</p><Suspense fallback={<div className="game-board loading-state">Preparing the scene…</div>}><PixelCatchGame /></Suspense></div>;
+  return <div className="game-card"><div className="game-head"><div><h3>Snake</h3></div></div><p className="muted">The classic, stripped back to its essentials. Eat, grow, and try not to run into yourself.</p><Suspense fallback={<div className="game-board loading-state">Preparing the scene…</div>}><PixelCatchGame /></Suspense></div>;
 }
 
 export function App() {
