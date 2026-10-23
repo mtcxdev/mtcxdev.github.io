@@ -321,3 +321,28 @@
   .site-header .header-contact{padding:9px 13px}
   .site-header.is-scrolled .header-contact{padding:8px 12px}
 }
+
+
+/* Light-mode contrast and game canvas corrections. */
+:root[data-theme="light"] .game-dock .snake-board{background:var(--game-bg)}
+:root[data-theme="light"] .game-dock .snake-board canvas{filter:none;mask-image:linear-gradient(to bottom,#000 0%,#000 42%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 42%,transparent 100%)}
+:root[data-theme="light"] .game-dock .snake-start-button{background:rgba(248,249,246,.94);color:#18251d;border-color:rgba(39,136,77,.6);box-shadow:0 8px 28px rgba(24,52,34,.13)}
+:root[data-theme="light"] .game-dock .snake-start-button:hover{background:#27884d;color:#fff}
+:root[data-theme="light"] .game-dock-copy h2 em,
+:root[data-theme="light"] .hero .headline-accent,
+:root[data-theme="light"] .brand-mark span,
+:root[data-theme="light"] .intro-strip em,
+:root[data-theme="light"] .section-heading h2 em,
+:root[data-theme="light"] .contact-content h2 em{color:#27884d}
+:root[data-theme="light"] .button-primary,
+:root[data-theme="light"] .header-contact,
+:root[data-theme="light"] .payre-preview-bottom .text-link{background:#27884d;border-color:#27884d;color:#fff}
+:root[data-theme="light"] .button-primary:hover,
+:root[data-theme="light"] .header-contact:hover,
+:root[data-theme="light"] .payre-preview-bottom .text-link:hover{background:#207341;color:#fff}
+:root[data-theme="light"] .snake-game-open{background:#f8faf7!important;color:#18251d}
+:root[data-theme="light"] .snake-game-open .snake-board{background:var(--game-bg);border:1px solid rgba(39,136,77,.25);border-radius:18px}
+:root[data-theme="light"] .snake-game-open .snake-modal-top button{background:#fff;color:#18251d;border-color:rgba(24,52,34,.16)}
+:root[data-theme="light"] .snake-game-open .snake-footer button{background:#27884d;color:#fff}
+.game-dock .snake-board canvas{filter:none;mask-image:linear-gradient(to bottom,#000 0%,#000 42%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 42%,transparent 100%)}
+.snake-game-open .snake-board canvas{mask-image:none!important;-webkit-mask-image:none!important}
