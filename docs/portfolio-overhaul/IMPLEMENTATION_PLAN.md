@@ -6,66 +6,55 @@ Rebuild the MTCX Dev portfolio as a responsive, memorable developer portfolio wh
 ## Guardrails
 - Work on `feat/portfolio-experience-overhaul`; never push directly to `main`.
 - Commit after each meaningful implementation milestone so work survives tool/session resets.
-- Keep existing contact paths and essential accessibility affordances.
-- Avoid fixed-width/clamped layouts; test narrow mobile, tablet, laptop, and wide desktop layouts.
-- Respect `prefers-reduced-motion`, pause animation when off-screen, and keep the optional game non-blocking.
-- Do not fabricate GitHub metrics or analytics. Label unavailable integrations and document required configuration.
+- Keep essential accessibility affordances and contact paths.
+- Avoid fixed-width/clamped layouts; use fluid type and responsive layouts.
+- Respect `prefers-reduced-motion`, pause animation when off-screen, and keep the game optional.
+- Do not fabricate GitHub metrics or analytics. Label unavailable integrations and document configuration.
 
-## Implementation sequence
-### 0. Baseline and discovery
-- [x] Confirm repository `mtcxdev/mtcx`, default branch `main`, and current React + TypeScript + Vite stack through Composio.
-- [x] Identify existing `Portfolio` section and current monochrome design system.
-- [x] Inspect the app and key personal/organization manifests (`mt-flex-jsx`, `mt-flights`, `wasell-ng`, `gasless-ui`, `Payre-IO/payre-web`, and `Payre-IO/payre-checkout`) for stack evidence.
-- [x] Capture a fresh 1200×900 screenshot of `https://payre.onrender.com` and validate the visible page content.
+## Implementation sequence and status
 
-### 1. Architecture and content
-- [x] Remove the old projects/work catalogue and lightbox from the primary app composition.
-- [x] Replace the project grid with one Payre spotlight and a single outbound website link.
-- [x] Reorganize around intro, GitHub activity, tech stack, about, contact, and footer.
-- [x] Replace the illustrative Payre preview with a captured screenshot of the actual live site.
-- [ ] Validate all technology claims against owned and organization repositories.
+### Discovery and stack audit
+- [x] Confirmed repository `mtcxdev/mtcx`, default branch `main`, React 19 + TypeScript + Vite, and npm lockfile.
+- [x] Reviewed manifests across `mt-flex-jsx`, `mt-flights`, `wasell-ng`, `gasless-ui`, `Payre-IO/payre-web`, and `Payre-IO/payre-checkout` via Composio.
+- [x] Grouped technology logos into Languages, Frameworks & runtimes, Libraries & packages, Web3 & blockchain, Data & infrastructure, and Software & workflow.
 
-### 2. Visual system and motion
-- [x] Establish responsive spacing, fluid type, accessible contrast, and mobile layouts.
-- [x] Add light/dark theme toggle with persisted preference and system-theme fallback.
-- [x] Add animated pixel field with reduced-motion fallback and visibility-aware rendering.
-- [x] Replace the canvas pixel field and mini-game with lazy-loaded, instanced Three.js scenes; keep the renderer visibility-aware and cap device pixel ratio.
+### Content and design
+- [x] Removed the projects/work catalogue and lightbox from the primary app composition.
+- [x] Replaced the catalogue with a single Payre spotlight, using a fresh 1200×900 screenshot from `https://payre.onrender.com` and a direct outbound link to the live site.
+- [x] Reorganized the page around intro, about, stack, live GitHub activity/repositories, playful experiment, contact, and footer.
+- [x] Added a responsive light/dark theme toggle with persisted preference and system-theme fallback.
+- [x] Added fluid responsive layouts, keyboard focus styling, and reduced-motion support.
 
-### 3. Live integrations
-- [x] Add live GitHub contribution activity and recent public repositories with loading/error states.
-- [x] Add live GitHub profile/repository preview links.
-- [x] Add privacy-conscious public page analytics behind `VITE_GOATCOUNTER_CODE` configuration.
-- [ ] Verify live endpoints, rate limits, analytics configuration, and privacy notice requirements.
+### Interactive experiences
+- [x] Added a lazy-loaded, instanced Three.js pixel scene. It caps device pixel ratio, observes visibility/resizes, respects reduced motion, and disposes resources.
+- [x] Added an optional Three.js cube-catching mini-game that starts on demand and disposes resources on unmount.
+- [x] Vite emits Three.js as a separate chunk (~485 kB raw / ~121 kB gzip), keeping it out of the initial JS download.
 
-### 4. Verification and delivery
-- [ ] Run TypeScript/build/lint checks and fix errors.
-- [ ] Check keyboard navigation, theme persistence, reduced motion, responsive layout, and fallback states.
-- [ ] Verify Payre screenshot/source and all outbound links.
-- [ ] Record actual tests, known limitations, configuration steps, and commit SHAs here.
-- [ ] Open a pull request; do not merge without review.
+### Live integrations
+- [x] Added a live public contribution graph and recent public repositories for `mtcxdev`, with loading/error states.
+- [x] Added direct GitHub profile/repository links.
+- [x] Added optional GoatCounter page analytics through `VITE_GOATCOUNTER_CODE`. No analytics script is loaded if the variable is unset.
+
+### Verification and remaining work
+- [x] `tsc -b` and `vite build` passed after the Three.js components and lazy imports were added. Build output confirmed separate `PixelScene`, `PixelCatchGame`, and Three.js chunks.
+- [ ] Re-run the production build after the final technology-list-only change. The persistent Composio sandbox later timed out during npm dependency restoration, so this exact final HEAD was not re-verified.
+- [ ] Browser-level desktop/mobile, theme-toggle, image-load, and game-interaction smoke test.
+- [ ] Review logo fallback availability for every Simple Icons slug and refine any missing logos.
+- [ ] `npm run lint` is not passing: Oxlint reported a large number of warnings/errors in generated `dist` and dependency/runtime files after build, so it needs ignore/config cleanup and a source-only lint run.
+- [ ] Review the draft PR and CI before merge. This work has not been deployed to production.
 
 ## Configuration
 - Optional public page analytics: set `VITE_GOATCOUNTER_CODE` to the site's GoatCounter code. If unset, no analytics script is loaded. Do not store secrets in `VITE_*` variables.
 - GitHub activity is loaded from public endpoints for `mtcxdev`. The contribution provider and GitHub API may rate-limit or become unavailable; the UI has a graceful error state.
 
 ## Progress log
-### 2026-10-23 — discovery and first implementation milestone
-- Confirmed repository `mtcxdev/mtcx`, default branch `main`.
-- Confirmed React 19, TypeScript, Vite, Lucide React, and an npm lockfile.
-- Replaced the former `Portfolio`/lightbox composition with a new single-page developer portfolio, a single Payre spotlight, grouped technology stack, live GitHub contribution graph/recent repositories, contact CTA, and mini-game.
-- Added light/dark theme persistence, responsive layouts, reduced-motion styling, and optional GoatCounter configuration.
-- Important remaining tasks: capture a real Payre screenshot (the current preview is a CSS mock and must not be represented as an actual screenshot), implement true Three.js rendering/game rather than the initial lightweight canvas, validate technology inventory from organization repos, and run build/lint checks.
 
-### 2026-10-23 — live preview and Three.js milestone
-- Captured a fresh 1200×900 screenshot from the live Payre site and checked the visible page text before adding it as `public/projects/payre-live.png`. The preview is now a real screenshot, not a CSS illustration.
-- Converted the hero visual to an instanced Three.js scene, lazy-loaded as its own chunk, with a capped pixel ratio, reduced-motion behavior, resize handling, and visibility-aware rendering.
-- Replaced the DOM-only click target with a small Three.js cube-catching game that starts on demand and cleans up its renderer/resources.
-- Added `three` and `@types/three` and generated the npm lockfile through npm.
-- Build check after this milestone is pending.
-
-### 2026-10-23 — repository stack audit
-- Queried personal repositories and the `Payre-IO` organization through Composio. Reviewed manifests from the main React/Vite tools, the Next.js SaaS app, flight service, and Payre web/checkout repos.
-- Reorganized the tech stack into Languages, Frameworks & runtimes, Libraries & packages, Web3 & blockchain, Data & infrastructure, and Software & workflow. Categories are based on observed package manifests and project context; individual icon availability depends on Simple Icons.
-- Confirmed production build succeeds after Three.js scene and game became lazy-loaded chunks. The Three.js engine is emitted as its own ~485 kB raw / ~121 kB gzip chunk, so visitors who do not load interactive scenes do not pay its initial download cost.
-- `npm run lint` currently reports extensive warnings/errors inside generated `dist` and dependency/runtime files, not just source; lint is not considered passed. Build verification is the current successful check.
-- Remaining: browser-level responsive/interaction smoke test, update final verification status, and create a draft PR.
+### 2026-10-23 — implementation checkpoints
+- `c296262b0cd345dbac5b30844289ccfdd80414e9`: committed implementation plan and work log before substantial edits.
+- `1e21a949fedc9daaf6eff635928ee55ebb3adb7a`: replaced the old portfolio composition, added the new page structure, themes, GitHub integrations, and optional analytics.
+- `70adbdee496f70394b89e117359fb7f27fdf91bb`: added Three.js dependencies and instanced pixel scene checkpoint.
+- `f8bd26938d3daed97d1b46924c34c9f61cbcb743`: captured and committed the actual Payre screenshot, replaced the mock preview, and added the Three.js mini-game.
+- `d94a0e645dc5e873650f8f43ec7b245655332656`: repaired app composition and lazy-loaded Three.js experiences; production build passed.
+- `d03cfcf9fe490a79e705477a24cbe39828c48fb0`: aligned the tech stack taxonomy to reviewed personal and organization manifests.
+- A fresh Payre screenshot was checked for real page content before committing; it is stored at `public/projects/payre-live.png`.
+- No changes have been pushed to `main`, and no deployment has been triggered by this work.
