@@ -81,7 +81,7 @@ export function App() {
   const [introVisible,setIntroVisible] = useState(true);
   const markGameReady = useCallback(() => setGameReady(true), []);
   const markGithubReady = useCallback(() => setGithubReady(true), []);
-  useEffect(()=>{const timer=window.setTimeout(()=>setMinimumTimeElapsed(true),900);return()=>window.clearTimeout(timer)},[]);
+  useEffect(()=>{const timer=window.setTimeout(()=>setMinimumTimeElapsed(true),1900);return()=>window.clearTimeout(timer)},[]);
   useEffect(()=>{if(githubReady&&gameReady&&minimumTimeElapsed){const timer=window.setTimeout(()=>setIntroVisible(false),460);return()=>window.clearTimeout(timer)}},[githubReady,gameReady,minimumTimeElapsed]);
   useEffect(()=>{const timer=window.setTimeout(()=>{setGithubReady(true);setGameReady(true)},8000);return()=>window.clearTimeout(timer)},[]);
   useEffect(()=>{document.documentElement.dataset.theme=theme; try{localStorage.setItem('mtcx-theme',theme)}catch{}},[theme]);
