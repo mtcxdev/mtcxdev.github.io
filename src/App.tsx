@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, Code2, ExternalLink, GitBranch, Globe2, Layers3, Moon, Sun } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Code2, ExternalLink, GitBranch, Globe2, Moon, Sun } from 'lucide-react';
 import './App.css';
 import { PageViews } from './components/PageViews';
 const PixelScene = lazy(() => import('./components/PixelScene').then(module => ({ default: module.PixelScene })));
