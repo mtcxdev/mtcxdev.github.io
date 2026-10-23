@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, Code2, ExternalLink, GitBranch, Globe2, Moon, Sun, Github } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Code2, ExternalLink, GitBranch, Globe2, Moon, Sun } from 'lucide-react';
 import './App.css';
 import { PageViews } from './components/PageViews';
 const PixelScene = lazy(() => import('./components/PixelScene').then(module => ({ default: module.PixelScene })));
@@ -33,7 +33,7 @@ function GithubActivity() {
     const days = 365;
     const cutoff = new Date(); cutoff.setHours(0,0,0,0); cutoff.setDate(cutoff.getDate()-days+1);
     return contributions.filter(day => day.date && new Date(`${day.date}T00:00:00`) >= cutoff);
-  },[contributions,timeframe]);
+  },[contributions]);
   const weeks = useMemo(()=>{ const all=[...visibleContributions]; if(!all.length)return []; const firstDay=new Date(`${all[0].date}T00:00:00`).getDay(); for(let i=0;i<firstDay;i++)all.unshift({date:'',count:0,level:0}); const pad=(7-(all.length%7))%7; for(let i=0;i<pad;i++) all.push({date:'',count:0,level:0}); const result:Contribution[][]=[]; for(let i=0;i<all.length;i+=7) result.push(all.slice(i,i+7)); return result; },[visibleContributions]);
   const totalContributions = visibleContributions.reduce((sum,day)=>sum+day.count,0);
   return <section className="section github-section" id="github">
@@ -44,7 +44,7 @@ function GithubActivity() {
       {status==='ready' && <><div className="contrib-scroll"><div className="contrib-grid" aria-label="GitHub contribution activity for the last year">{weeks.map((week,i)=><div className="contrib-week" key={i}>{week.map((day,j)=><span key={`${i}-${j}`} className={`contrib-day level-${Math.min(4,day.level||0)}`} title={day.date?`${day.count} contributions on ${day.date}`:'No activity'}/>)}</div>)}</div></div><div className="contrib-legend"><span>Less</span>{[0,1,2,3,4].map(n=><i className={`contrib-day level-${n}`} key={n}/>)}<span>More</span></div></>}
     </div>
     <div className="repo-heading"><span className="eyebrow">Public repositories</span><span className="repo-count">{repos.length}</span></div>
-    <div className="repo-grid">{repos.map(repo=><a className="repo-card" key={repo.name} href={repo.html_url} target="_blank" rel="noreferrer"><div className="repo-card-title"><GitBranch size={17}/><strong>{repo.name}</strong><ArrowUpRight size={15}/></div>{repo.description&&<p>{repo.description}</p>}<div className="repo-meta">{repo.language&&<span><i className="language-dot"/>{repo.language}</span>}<span><Github size={12}/> {repo.stargazers_count}</span></div></a>)}</div>
+    <div className="repo-grid">{repos.map(repo=><a className="repo-card" key={repo.name} href={repo.html_url} target="_blank" rel="noreferrer"><div className="repo-card-title"><GitBranch size={17}/><strong>{repo.name}</strong><ArrowUpRight size={15}/></div>{repo.description&&<p>{repo.description}</p>}<div className="repo-meta">{repo.language&&<span><i className="language-dot"/>{repo.language}</span>}<span><img className="brand-icon tiny-brand-icon" src="https://cdn.simpleicons.org/github" alt="" /> {repo.stargazers_count}</span></div></a>)}</div>
   </section>;
 }
 
