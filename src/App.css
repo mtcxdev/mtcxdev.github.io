@@ -199,3 +199,10 @@
  .site-footer .footer-links{gap:12px}
 }
 @media(prefers-reduced-motion:reduce){.snake-game-open{animation:none}}
+
+.brand-icon{display:inline-block;width:16px;height:16px;object-fit:contain;flex-shrink:0;filter:brightness(0)}
+:root[data-theme="dark"] .brand-icon{filter:brightness(0) invert(1)}
+.tiny-brand-icon{width:12px;height:12px}
+.game-dock .snake-board canvas{touch-action:pan-y}
+.snake-game-open .snake-board canvas{touch-action:none}
+@media(max-width:760px){.site-header.is-scrolled .brand-mark{font-size:23px}.game-dock{margin-bottom:0}.game-dock-preview{min-width:0}.site-footer .footer-links a{min-width:16px;justify-content:center}}
