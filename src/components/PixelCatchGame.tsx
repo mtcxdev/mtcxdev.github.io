@@ -27,6 +27,25 @@ function randomFood(snake: Point[], cols: number, rows: number): Point {
   return free[Math.floor(Math.random() * free.length)] || { x: 1, y: 1 };
 }
 
+function playGameTone(frequency: number, duration: number) {
+  try {
+    const AudioContextConstructor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextConstructor) return;
+    const context = new AudioContextConstructor();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'square'; oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.035, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
+    oscillator.connect(gain); gain.connect(context.destination);
+    oscillator.start(); oscillator.stop(context.currentTime + duration);
+    oscillator.onended = () => { void context.close(); };
+  } catch { /* Audio is optional. */ }
+}
+function buzz(pattern: number | number[]) {
+  try { if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate(pattern); } catch { /* Not supported on every browser. */ }
+}
+
 export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -36,7 +55,13 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
   const [mode, setMode] = useState<Mode>('demo');
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
+  const [soundOn, setSoundOn] = useState(() => { try { return localStorage.getItem('snake-sound') !== 'off'; } catch { return true; } });
+  const [vibrationOn, setVibrationOn] = useState(() => { try { return localStorage.getItem('snake-vibration') !== 'off'; } catch { return true; } });
+  const soundRef = useRef(soundOn);
+  const vibrationRef = useRef(vibrationOn);
   const [isOpen, setIsOpen] = useState(false);
+  useEffect(() => { soundRef.current = soundOn; try { localStorage.setItem('snake-sound', soundOn ? 'on' : 'off'); } catch {} }, [soundOn]);
+  useEffect(() => { vibrationRef.current = vibrationOn; try { localStorage.setItem('snake-vibration', vibrationOn ? 'on' : 'off'); } catch {} }, [vibrationOn]);
   useEffect(() => { onReady?.(); }, [onReady]);
   const touchStartRef = useRef<{x:number;y:number}|null>(null);
 
@@ -138,6 +163,8 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         if (hitWall || body.some(part => same(part, next))) {
           state.mode = 'over';
           setMode('over');
+          if (soundRef.current) playGameTone(150, .22);
+          if (vibrationRef.current) buzz([45,35,70]);
           return;
         }
       }
@@ -145,6 +172,8 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       state.snake.unshift(next);
       if (same(next, state.food)) {
         if (state.mode === 'playing') {
+          if (soundRef.current) playGameTone(660, .09);
+          if (vibrationRef.current) buzz(24);
           state.score += 10;
           setScore(state.score);
           setBest(value => Math.max(value, state.score));
@@ -320,7 +349,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       <canvas ref={canvasRef} aria-hidden="true" />
       {mode !== 'playing' && <button className="snake-start-button" type="button" onClick={startGame}>{mode === 'over' ? 'Play again' : 'Play Snake'} <span aria-hidden="true">↗</span></button>}
     </div>
-    <div className="game-footer snake-footer"><span>{mode === 'playing' ? 'EAT · GROW · DON’T CRASH' : mode === 'over' ? 'RUN ENDED · TRY AGAIN' : 'CLASSIC SNAKE'}</span><span>SCORE <b>{String(score).padStart(3, '0')}</b></span><span>BEST <b>{String(best).padStart(3, '0')}</b></span><button type="button" onClick={startGame}>{mode === 'playing' ? 'Restart' : 'Play'} <ArrowUpRight size={12}/></button></div>
+    <div className="game-footer snake-footer"><span>{mode === 'playing' ? 'EAT · GROW · DON’T CRASH' : mode === 'over' ? 'RUN ENDED · TRY AGAIN' : 'CLASSIC SNAKE'}</span><span>SCORE <b>{String(score).padStart(3, '0')}</b></span><span>BEST <b>{String(best).padStart(3, '0')}</b></span><button type="button" className="game-setting" aria-pressed={soundOn} onClick={() => setSoundOn(value => !value)}>{soundOn ? 'Sound on' : 'Sound off'}</button><button type="button" className="game-setting" aria-pressed={vibrationOn} onClick={() => setVibrationOn(value => !value)}>{vibrationOn ? 'Vibration on' : 'Vibration off'}</button><button type="button" onClick={startGame}>{mode === 'playing' ? 'Restart' : 'Play'} <ArrowUpRight size={12}/></button></div>
   </div>;
   return isOpen ? createPortal(gameMarkup, document.body) : gameMarkup;
 }
