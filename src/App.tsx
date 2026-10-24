@@ -56,26 +56,55 @@ function LocalTimeCard() {
 }
 
 
+const WAVE_BARS = 28;
+const formatTime = (seconds: number) => {
+  if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+  return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
+};
+
 function FavouriteSongPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
-  const [audioError, setAudioError] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
+  const [time, setTime] = useState({ current: 0, duration: 0 });
+  const sync = () => {
+    const audio = audioRef.current;
+    if (audio) setTime({ current: audio.currentTime, duration: Number.isFinite(audio.duration) ? audio.duration : 0 });
+  };
   const togglePlayback = async () => {
     const audio = audioRef.current;
-    if (!audio) return;
-    if (audio.paused) {
-      try { await audio.play(); setAudioError(false); } catch { setAudioError(true); setPlaying(false); }
-    } else { audio.pause(); }
+    if (!audio || unavailable) return;
+    if (audio.paused) { try { await audio.play(); } catch { setPlaying(false); } } else { audio.pause(); }
   };
+  const seekBy = (seconds: number) => {
+    const audio = audioRef.current;
+    if (audio && time.duration) { audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), time.duration); sync(); }
+  };
+  const seekToRatio = (ratio: number) => {
+    const audio = audioRef.current;
+    if (audio && time.duration) { audio.currentTime = Math.min(Math.max(ratio, 0), 1) * time.duration; sync(); }
+  };
+  const playedBars = time.duration ? Math.round((time.current / time.duration) * WAVE_BARS) : 0;
   return <section className={`favourite-song${playing ? ' is-playing' : ''}`} aria-label="Favourite song">
-    <div className="favourite-song-top"><span className="eyebrow">ON REPEAT</span><span className="song-live"><i/> PERSONAL ROTATION</span></div>
+    <span className="eyebrow">ON REPEAT</span>
     <div className="song-player-main">
-      <button className="song-vinyl" type="button" onClick={togglePlayback} aria-label={playing ? 'Pause Jane!' : 'Play Jane!'}><span className="vinyl-label"><i>J!</i></span><span className="vinyl-play-glyph">{playing ? 'Ⅱ' : '▶'}</span></button>
-      <div className="song-copy"><span className="song-track-number">FAVOURITE TRACK · 001</span><h3>Jane!</h3><p>The Long Faces</p><div className="song-waveform" aria-hidden="true">{Array.from({length:28},(_,i)=><i key={i} style={{'--bar':(18+((i*17+11)%28))+'px'} as React.CSSProperties}/>)}</div></div>
+      <button className="song-vinyl" type="button" onClick={togglePlayback} disabled={unavailable} aria-label={playing ? 'Pause Jane!' : 'Play Jane!'}>
+        <span className="vinyl-disc"><span className="vinyl-label"><i>J!</i></span></span>
+        <span className="vinyl-play-glyph" aria-hidden="true">{playing
+          ? <svg viewBox="0 0 10 10"><rect x="1.5" y="1" width="2.5" height="8"/><rect x="6" y="1" width="2.5" height="8"/></svg>
+          : <svg viewBox="0 0 10 10"><path d="M2 1l7 4-7 4z"/></svg>}</span>
+      </button>
+      <div className="song-copy">
+        <h3>Jane!</h3><p>The Long Faces</p>
+        <div className="song-waveform" role="slider" tabIndex={0} aria-label="Seek" aria-valuemin={0} aria-valuemax={Math.round(time.duration)} aria-valuenow={Math.round(time.current)} aria-valuetext={`${formatTime(time.current)} of ${formatTime(time.duration)}`}
+          onClick={event => { const rect = event.currentTarget.getBoundingClientRect(); seekToRatio((event.clientX - rect.left) / rect.width); }}
+          onKeyDown={event => { if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') { event.preventDefault(); seekBy(event.key === 'ArrowRight' ? 5 : -5); } }}>
+          {Array.from({ length: WAVE_BARS }, (_, i) => <i key={i} className={i < playedBars ? 'is-played' : undefined} style={{ '--bar': (18 + ((i * 17 + 11) % 28)) + 'px' } as React.CSSProperties} />)}
+        </div>
+        <div className="song-time" aria-hidden="true"><span>{formatTime(time.current)}</span><span>{formatTime(time.duration)}</span></div>
+      </div>
     </div>
-    <div className="song-player-links"><span><i/> INDIE ROCK · FULL TRACK</span><button type="button" onClick={togglePlayback}>{playing ? 'Pause track' : 'Play full track'} <span aria-hidden="true">{playing ? 'Ⅱ' : '▶'}</span></button></div>
-    <audio ref={audioRef} className="song-audio" src="/audio/jane-the-long-faces.mp3" preload="none" controls onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} onError={() => { setAudioError(true); setPlaying(false); }} />
-    {audioError && <p className="song-audio-note" role="status">Add <code>public/audio/jane-the-long-faces.mp3</code> to the repository to enable playback.</p>}
+    <audio ref={audioRef} className="song-audio" src="/audio/jane-the-long-faces.mp3" preload="metadata" onLoadedMetadata={sync} onDurationChange={sync} onTimeUpdate={sync} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => { setPlaying(false); sync(); }} onError={() => { setUnavailable(true); setPlaying(false); }} />
   </section>;
 }
 
