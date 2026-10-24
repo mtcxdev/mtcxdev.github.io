@@ -3,6 +3,18 @@ import { Eye } from 'lucide-react';
 
 type CounterResponse = { pageViews?: number };
 
+function ordinalSuffix(value: number): string {
+  const remainder100 = value % 100;
+  if (remainder100 >= 11 && remainder100 <= 13) return 'th';
+
+  switch (value % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+}
+
 /** A deliberately minimal, page-view-only public counter. */
 export function PageViews() {
   const [views, setViews] = useState<number | null>(null);
@@ -20,5 +32,15 @@ export function PageViews() {
   }, []);
 
   if (!available) return null;
-  return <span className="page-views" aria-label={views === null ? 'Page views loading' : `${views.toLocaleString()} page views`}><Eye size={13} aria-hidden="true"/><span className="page-views-label">VIEWS</span><strong>{views === null ? '—' : views.toLocaleString()}</strong></span>;
+
+  const visitorLabel = views === null ? 'Visitor number loading' : `You are the ${views}${ordinalSuffix(views)} visitor`;
+
+  return (
+    <span className="page-views" aria-label={visitorLabel}>
+      <Eye size={13} aria-hidden="true" />
+      <span className="page-views-label">You are the</span>
+      <strong>{views === null ? '—' : `${views}${ordinalSuffix(views)}`}</strong>
+      <span className="page-views-label">visitor</span>
+    </span>
+  );
 }
