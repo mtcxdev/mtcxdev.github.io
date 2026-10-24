@@ -113,7 +113,7 @@ function MiniGame({ onReady }: { onReady: () => void }) {
 }
 
 // Intro timing (ms). The overlay can never outlive INTRO_MAX, whatever the network does.
-const INTRO_MIN = 1900, INTRO_MIN_REDUCED = 500, INTRO_EXIT = 1150, INTRO_EXIT_REDUCED = 220, INTRO_MAX = 4500;
+const INTRO_MIN = 3200, INTRO_MIN_REDUCED = 500, INTRO_EXIT = 2200, INTRO_EXIT_REDUCED = 220, INTRO_MAX = 6500;
 const delay = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties;
 
 /** Draws the real page in on load. It reuses the page's own header / game-dock / hero classes, so the geometry matches the site at every breakpoint. */
@@ -153,7 +153,9 @@ export function App() {
   useEffect(()=>{const timer=window.setTimeout(()=>setMinimumTimeElapsed(true),reducedMotion?INTRO_MIN_REDUCED:INTRO_MIN);return()=>window.clearTimeout(timer)},[reducedMotion]);
   useEffect(()=>{if(introReady){const timer=window.setTimeout(()=>setIntroVisible(false),reducedMotion?INTRO_EXIT_REDUCED:INTRO_EXIT);return()=>window.clearTimeout(timer)}},[introReady,reducedMotion]);
   useEffect(()=>{const timer=window.setTimeout(()=>{setGithubReady(true);setGameReady(true);setMinimumTimeElapsed(true)},INTRO_MAX);return()=>window.clearTimeout(timer)},[]);
-  useEffect(()=>{if(!introVisible)return;const pageNodes=Array.from(document.querySelectorAll<HTMLElement>('.site-shell > :not(.intro-loader)'));pageNodes.forEach(node=>node.setAttribute('inert',''));return()=>pageNodes.forEach(node=>node.removeAttribute('inert'))},[introVisible]);
+  useEffect(()=>{if(typeof window==='undefined')return;const previousRestoration=window.history.scrollRestoration;window.history.scrollRestoration='manual';window.scrollTo(0,0);return()=>{window.history.scrollRestoration=previousRestoration}},[]);
+   useEffect(()=>{if(!introVisible)window.scrollTo(0,0)},[introVisible]);
+   useEffect(()=>{if(!introVisible)return;const pageNodes=Array.from(document.querySelectorAll<HTMLElement>('.site-shell > :not(.intro-loader)'));pageNodes.forEach(node=>node.setAttribute('inert',''));return()=>pageNodes.forEach(node=>node.removeAttribute('inert'))},[introVisible]);
   useEffect(()=>{document.documentElement.dataset.theme=theme; try{localStorage.setItem('mtcx-theme',theme)}catch{}},[theme]);
   useEffect(()=>{const onScroll=()=>setScrolled(window.scrollY>32);onScroll();window.addEventListener('scroll',onScroll,{passive:true});return()=>window.removeEventListener('scroll',onScroll)},[]);
   useEffect(()=>{const nodes=Array.from(document.querySelectorAll<HTMLElement>('.section-heading, .intro-strip, .personal-intro, .personal-detail, .about-note, .payre-showcase, .stack-group, .github-panel, .repo-card, .contact-content'));if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){(entry.target as HTMLElement).classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.12,rootMargin:'0px 0px -35px 0px'});nodes.forEach((node,index)=>{node.dataset.reveal=index%2===0?'left':'right';observer.observe(node)});return()=>observer.disconnect()},[]);
