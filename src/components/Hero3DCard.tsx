@@ -8,7 +8,13 @@ export const Hero3DCard: React.FC = () => {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile && innerRef.current) {
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        innerRef.current.style.transform = '';
+        innerRef.current.style.boxShadow = '';
+      }
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
