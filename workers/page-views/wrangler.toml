@@ -4,8 +4,8 @@ compatibility_date = "2026-10-23"
 
 [[kv_namespaces]]
 binding = "PAGE_VIEWS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "b7dbf68b518c44f7a84548f7fb485922"
 
 [vars]
 # Comma-separated exact origins; do not include paths or trailing slashes.
-ALLOWED_ORIGINS = "https://YOUR-PORTFOLIO-DOMAIN"
+ALLOWED_ORIGINS = "https://mtcxdev.github.io"
