@@ -84,7 +84,7 @@ function MiniGame({ onReady }: { onReady: () => void }) {
 }
 
 // Intro timing (ms). The overlay can never outlive INTRO_MAX, whatever the network does.
-const INTRO_MIN = 1900, INTRO_MIN_REDUCED = 500, INTRO_EXIT = 700, INTRO_EXIT_REDUCED = 220, INTRO_MAX = 4500;
+const INTRO_MIN = 1900, INTRO_MIN_REDUCED = 500, INTRO_EXIT = 1150, INTRO_EXIT_REDUCED = 220, INTRO_MAX = 4500;
 const delay = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties;
 
 /** Draws the real page in on load. It reuses the page's own header / game-dock / hero classes, so the geometry matches the site at every breakpoint. */
@@ -100,12 +100,13 @@ function IntroLoader({ exiting, theme }: { exiting: boolean; theme: 'dark' | 'li
       </div>
       <div className="game-dock"><span className="snake-start-button l-pill" style={delay(300)}>Play Snake <span>↗</span><i className="loader-snake">{[0,1,2].map(i=><i className="l-cell" style={delay(560+i*90)} key={i}/>)}</i></span></div>
       <section className="hero section"><div className="hero-copy">
-        <h1><span className="loader-line loader-ink" style={delay(520)}>Ideas into</span><span className="headline-outline loader-line" style={delay(640)}>things that</span><span className="headline-accent loader-line loader-ink" style={delay(760)}>work.</span></h1>
+        <h1><span className="loader-line" style={delay(520)}>Ideas into</span><span className="headline-outline loader-line" style={delay(640)}>things that</span><span className="headline-accent loader-line" style={delay(760)}>work.</span></h1>
         <p className="hero-description l-in" style={delay(1000)}>I design, engineer, and ship thoughtful digital products — from expressive interfaces to the systems powering them.</p>
         <div className="hero-actions"><span className="button button-primary l-in" style={delay(1100)}>Start a conversation <ArrowUpRight size={16}/></span><span className="button button-quiet l-in" style={delay(1180)}>Explore my code <ArrowDownRight size={16}/></span></div>
         <div className="hero-footnote"><span className="l-in" style={delay(1260)}><Code2 size={14}/> Full-stack engineering</span><span className="l-in" style={delay(1320)}><Globe2 size={14}/> Nigeria · Working worldwide</span></div>
       </div><span className="scroll-cue l-in" style={delay(1380)}><span>SCROLL TO EXPLORE</span><ArrowDownRight size={15}/></span></section>
     </div>
+    <div className="loader-shimmer" aria-hidden="true"/>
   </div>;
 }
 

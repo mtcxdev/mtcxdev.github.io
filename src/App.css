@@ -422,34 +422,44 @@
 
 
 /* ── Intro overlay ────────────────────────────────────────────────────────────
-   A drawing pass over the real page. The overlay reuses the page's own header,
-   game-dock and hero classes, so geometry, type scale, breakpoints and theme
-   tokens are the real ones. Only the entrance choreography lives here. The base
-   state of every element is its final, visible state; motion is opt-in below. */
-.intro-loader{--l-ease:cubic-bezier(.22,.7,.2,1);--l-wipe:cubic-bezier(.65,0,.15,1);position:fixed;inset:0;z-index:3000;overflow:hidden;background:var(--bg);color:var(--text);transition:opacity .6s cubic-bezier(.4,0,.2,1)}
-.intro-loader.is-exiting{opacity:0;pointer-events:none}
-.loader-stage{position:absolute;inset:0;min-width:320px;isolation:isolate;overflow:hidden;pointer-events:none}
+   A text-free blueprint of the real page. The overlay reuses the page's own
+   header, game-dock and hero classes, so every outline sits exactly where the
+   real element will be; all text and icons are made transparent and only
+   outlines (hatched = copy, dashed = controls) are drawn. On exit a shimmer
+   travels top to bottom and the stage is masked away behind it, unveiling the
+   real page. The base state is the finished drawing; motion is opt-in below. */
+.intro-loader{--l-ease:cubic-bezier(.22,.7,.2,1);--l-sweep:cubic-bezier(.45,0,.25,1);--l-line:color-mix(in srgb,var(--text) 42%,transparent);--l-faint:color-mix(in srgb,var(--text) 22%,transparent);--l-grid:color-mix(in srgb,var(--text) 8%,transparent);--l-hatch:repeating-linear-gradient(135deg,var(--l-faint) 0 1px,transparent 1px 6px);position:fixed;inset:0;z-index:3000;overflow:hidden}
+.intro-loader.is-exiting{pointer-events:none}
+.loader-stage{position:absolute;inset:0;min-width:320px;isolation:isolate;overflow:hidden;pointer-events:none;background:var(--bg);-webkit-mask-image:linear-gradient(#0000 40%,#000 52%);mask-image:linear-gradient(#0000 40%,#000 52%);-webkit-mask-size:100% 300%;mask-size:100% 300%;-webkit-mask-position:0 100%;mask-position:0 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.loader-stage *{color:transparent!important;text-shadow:none!important;-webkit-text-stroke:0!important;box-shadow:none!important;backdrop-filter:none!important}
 .loader-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.loader-line{display:block;width:fit-content}
+.loader-stage .ambient-grid{height:100%;mask-image:none;-webkit-mask-image:none;background-image:linear-gradient(var(--l-grid) 1px,transparent 1px),linear-gradient(90deg,var(--l-grid) 1px,transparent 1px)}
+.loader-stage .hero:before,.loader-stage .hero:after{content:"";position:absolute;top:-100vh;bottom:-100vh;width:0;border-left:1px dashed var(--l-faint);pointer-events:none}
+.loader-stage .hero:before{left:0}.loader-stage .hero:after{right:0}
+.loader-stage :is(.brand-mark,.brand-name,.main-nav a,.availability,.hero-footnote span,.scroll-cue,.hero-description,.loader-line,.button-primary){outline:1px solid var(--l-line);outline-offset:-1px;background:var(--l-hatch)!important;border-color:transparent!important}
+.loader-stage :is(.theme-toggle,.header-contact,.snake-start-button,.button-quiet){outline:1px dashed var(--l-line);outline-offset:-1px;background:transparent!important;border-color:transparent!important}
+.loader-stage .availability i{background:transparent!important}
+.loader-stage .loader-line{display:block;width:fit-content}
 .loader-snake{position:absolute;left:calc(100% + clamp(8px,2vw,28px));top:calc(50% + 2px);display:flex;gap:4px;pointer-events:none}
-.l-cell{position:relative;display:block;width:20px;height:20px;border-radius:3px;background:color-mix(in srgb,var(--game-snake) 52%,transparent)}
-.l-cell:nth-child(2){background:color-mix(in srgb,var(--game-snake) 64%,transparent)}
-.l-cell:nth-child(3){background:color-mix(in srgb,var(--game-snake) 78%,transparent)}
-.l-cell:nth-child(3):before,.l-cell:nth-child(3):after{content:"";position:absolute;right:4px;width:3px;height:3px;border-radius:50%;background:var(--game-eye)}
-.l-cell:nth-child(3):before{top:5px}.l-cell:nth-child(3):after{bottom:5px}
+.l-cell{display:block;width:20px;height:20px;border-radius:3px;outline:1px solid var(--l-line);outline-offset:-1px;background:transparent!important}
+.loader-shimmer{position:absolute;left:0;right:0;top:0;height:30vh;pointer-events:none;opacity:0;transform:translateY(-77vh);background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--accent) 12%,transparent) 46%,color-mix(in srgb,var(--accent) 75%,transparent) 50%,color-mix(in srgb,var(--accent) 12%,transparent) 54%,transparent 100%)}
 @keyframes l-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes l-fade{from{opacity:0}to{opacity:1}}
 @keyframes l-pill{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @keyframes l-cell{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 @keyframes l-wipe{from{clip-path:inset(-12% 100% -12% 0)}to{clip-path:inset(-12% -4% -12% -2%)}}
-@keyframes l-ink{from{-webkit-text-stroke:1.25px currentColor;-webkit-text-fill-color:transparent}to{-webkit-text-stroke:0 currentColor;-webkit-text-fill-color:currentColor}}
+@keyframes l-sweep{to{-webkit-mask-position:0 0;mask-position:0 0}}
+@keyframes l-shimmer{0%{transform:translateY(-77vh);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(123vh);opacity:0}}
 @media(prefers-reduced-motion:no-preference){
  .l-in{animation:l-in .55s var(--l-ease) var(--d,0ms) both}
  .l-pill{animation:l-pill .5s var(--l-ease) var(--d,0ms) both}
  .l-cell{animation:l-cell .35s var(--l-ease) var(--d,0ms) both}
- .loader-line{animation:l-wipe .7s var(--l-wipe) var(--d,0ms) both}
- .loader-ink{animation:l-wipe .7s var(--l-wipe) var(--d,0ms) both,l-ink .5s ease-out calc(var(--d,0ms) + .45s) both}
+ .loader-line{animation:l-wipe .7s cubic-bezier(.65,0,.15,1) var(--d,0ms) both}
+ .loader-stage .hero:before,.loader-stage .hero:after{animation:l-fade .8s ease-out .3s both}
+ .intro-loader.is-exiting .loader-stage{animation:l-sweep 1.1s var(--l-sweep) forwards}
+ .intro-loader.is-exiting .loader-shimmer{animation:l-shimmer 1.1s var(--l-sweep) forwards}
 }
-@media(prefers-reduced-motion:reduce){.intro-loader{transition-duration:.15s}}
+@media(prefers-reduced-motion:reduce){.loader-stage{transition:opacity .15s}.intro-loader.is-exiting .loader-stage{opacity:0}}
 
 
 .time-card{grid-column:1/-1;padding:18px 0 20px;border-bottom:1px solid var(--line);min-width:0}
