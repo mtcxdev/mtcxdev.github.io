@@ -2,7 +2,7 @@
 .payre-screenshot-frame{width:min(100% - 44px,1000px);margin:30px auto 34px;overflow:hidden;border:1px solid #2a3a2e;background:#101510;box-shadow:0 24px 80px #0008}.payre-screenshot-frame img{display:block;width:100%;height:auto;object-fit:cover}@media(max-width:760px){.payre-screenshot-frame{width:calc(100% - 20px);margin:18px auto 22px}}
 
 .page-views{display:inline-flex;align-items:center;justify-content:center;gap:7px;color:var(--muted);font:10px var(--font-mono);white-space:nowrap}.page-views svg{opacity:.8}.page-views-label{letter-spacing:.08em}.page-views strong{color:var(--text);font-weight:500;font-variant-numeric:tabular-nums}
-@media(max-width:600px){.page-views{gap:5px}.page-views-label{display:none}}
+@media(max-width:600px){.page-views{gap:6px;font-size:11px}}
 
 
 /* Quiet, immersive motion and interaction refinements */
