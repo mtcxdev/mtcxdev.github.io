@@ -2,8 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 
 export const Hero3DCard: React.FC = () => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -12,47 +12,52 @@ export const Hero3DCard: React.FC = () => {
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isMobile || !cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    // Restrained tilt max 12 deg
-    const tiltX = -(y / (rect.height / 2)) * 10;
-    const tiltY = (x / (rect.width / 2)) * 12;
-    setTilt({ x: tiltX, y: tiltY });
-  };
 
-  const handleMouseEnter = () => {
-    if (!isMobile) setIsHovered(true);
+    const { clientX, clientY } = e;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+    rafRef.current = requestAnimationFrame(() => {
+      if (!cardRef.current || !innerRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = clientX - rect.left - rect.width / 2;
+      const y = clientY - rect.top - rect.height / 2;
+      // Restrained tilt max 12 deg
+      const tiltX = -(y / (rect.height / 2)) * 10;
+      const tiltY = (x / (rect.width / 2)) * 12;
+
+      innerRef.current.style.transform = `perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale3d(1.03, 1.03, 1.03)`;
+      innerRef.current.style.boxShadow = '0 32px 64px -16px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 255, 255, 0.05)';
+    });
   };
 
   const handleMouseLeave = () => {
-    setIsHovered(false);
-    setTilt({ x: 0, y: 0 });
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (innerRef.current) {
+      innerRef.current.style.transform = '';
+      innerRef.current.style.boxShadow = '';
+    }
   };
 
-  const transformStyle = isHovered && !isMobile
-    ? {
-        transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale3d(1.03, 1.03, 1.03)`,
-        boxShadow: '0 32px 64px -16px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 255, 255, 0.05)'
-      }
-    : undefined;
+
 
   return (
     <div
       className="card-3d-scene"
       ref={cardRef}
       onMouseMove={handleMouseMove}
-      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       aria-label="MTCX Dev Interactive 3D Artifact Card"
     >
       <div className="card-3d-wrapper">
-        <div className="card-3d-inner" style={transformStyle}>
+        <div className="card-3d-inner" ref={innerRef}>
           {/* ================= FRONT FACE ================= */}
           <div className="card-face card-face-front">
             <span className="corner-mark corner-tl">+</span>

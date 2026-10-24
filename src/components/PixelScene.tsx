@@ -56,7 +56,7 @@ export function PixelScene() {
       renderer.render(scene,camera);if(!reduce)raf=requestAnimationFrame(render);
     };
     render();
-    return()=>{cancelAnimationFrame(raf);visibility.disconnect();observer.disconnect();host.removeEventListener('pointermove',onPointer);geometry.dispose();material.dispose();voxels.dispose();coreGeometry.dispose();coreMaterial.dispose();innerGeometry.dispose();innerMaterial.dispose();rings.forEach(r=>{r.geometry.dispose();(r.material as THREE.Material).dispose()});particleGeometry.dispose();particleMaterial.dispose();renderer.dispose();renderer.domElement.remove()};
+    return()=>{cancelAnimationFrame(raf);visibility.disconnect();observer.disconnect();host.removeEventListener('pointermove',onPointer);scene.clear();geometry.dispose();material.dispose();voxels.dispose();coreGeometry.dispose();coreMaterial.dispose();innerGeometry.dispose();innerMaterial.dispose();rings.forEach(r=>{r.geometry.dispose();(r.material as THREE.Material).dispose()});particleGeometry.dispose();particleMaterial.dispose();renderer.dispose();renderer.domElement.remove()};
   },[]);
   return <div className="pixel-scene" ref={hostRef} aria-hidden="true"/>;
 }
