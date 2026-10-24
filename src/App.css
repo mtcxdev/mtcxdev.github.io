@@ -442,7 +442,7 @@
 .loader-stage .loader-line{display:block;width:fit-content}
 .loader-snake{position:absolute;left:calc(100% + clamp(8px,2vw,28px));top:calc(50% + 2px);display:flex;gap:4px;pointer-events:none}
 .l-cell{display:block;width:20px;height:20px;border-radius:3px;outline:1px solid var(--l-line);outline-offset:-1px;background:transparent!important}
-.loader-shimmer{position:absolute;left:0;right:0;top:0;height:34vh;pointer-events:none;z-index:1;opacity:0;transform:translateY(-40vh);will-change:transform,opacity;background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--accent) 8%,transparent) 35%,color-mix(in srgb,var(--accent) 24%,transparent) 46%,color-mix(in srgb,var(--accent) 88%,transparent) 50%,color-mix(in srgb,var(--accent) 24%,transparent) 54%,color-mix(in srgb,var(--accent) 8%,transparent) 65%,transparent 100%)}
+.loader-shimmer{position:absolute;left:0;right:0;top:0;height:38vh;pointer-events:none;z-index:1;opacity:0;transform:translateY(-40vh);will-change:transform,opacity;background:linear-gradient(to bottom,transparent 0%,rgba(255,255,255,.015) 25%,rgba(255,255,255,.07) 38%,rgba(255,255,255,.19) 46%,rgba(255,255,255,.32) 49%,rgba(255,255,255,.12) 52%,rgba(255,255,255,.045) 62%,rgba(255,255,255,.01) 74%,transparent 100%);filter:blur(.35px);mix-blend-mode:screen}
 @keyframes l-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes l-fade{from{opacity:0}to{opacity:1}}
 @keyframes l-pill{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
