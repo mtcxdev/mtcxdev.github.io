@@ -36,11 +36,13 @@ export function PageViews() {
   const visitorLabel = views === null ? 'Visitor number loading' : `You are the ${views}${ordinalSuffix(views)} visitor`;
 
   return (
-    <span className="page-views" aria-label={visitorLabel}>
-      <Eye size={13} aria-hidden="true" />
-      <span className="page-views-label">You are the</span>
-      <strong>{views === null ? '—' : `${views}${ordinalSuffix(views)}`}</strong>
-      <span className="page-views-label">visitor</span>
-    </span>
+    <div className="page-views-line">
+      <span className="page-views" aria-label={visitorLabel}>
+        <Eye size={13} aria-hidden="true" />
+        <span className="page-views-label">You are the</span>
+        <strong>{views === null ? '—' : `${views}${ordinalSuffix(views)}`}</strong>
+        <span className="page-views-label">visitor</span>
+      </span>
+    </div>
   );
 }

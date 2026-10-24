@@ -54,17 +54,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenContact }) => {
           }}
         >
           <span
-            className="font-display"
-            style={{
-              fontSize: '1.15rem',
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              color: '#ffffff'
-            }}
-          >
-            MTCX DEV
-          </span>
-          <span
             className="tech-badge"
             style={{
               display: 'none',
