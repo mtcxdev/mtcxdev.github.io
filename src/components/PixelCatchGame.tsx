@@ -27,11 +27,9 @@ function randomFood(snake: Point[], cols: number, rows: number): Point {
   return free[Math.floor(Math.random() * free.length)] || { x: 1, y: 1 };
 }
 
-function playGameTone(frequency: number, duration: number) {
+function playGameTone(context: AudioContext | null, frequency: number, duration: number) {
   try {
-    const AudioContextConstructor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextConstructor) return;
-    const context = new AudioContextConstructor();
+    if (!context || context.state !== 'running') return;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     oscillator.type = 'square'; oscillator.frequency.value = frequency;
@@ -39,7 +37,6 @@ function playGameTone(frequency: number, duration: number) {
     gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
     oscillator.connect(gain); gain.connect(context.destination);
     oscillator.start(); oscillator.stop(context.currentTime + duration);
-    oscillator.onended = () => { void context.close(); };
   } catch { /* Audio is optional. */ }
 }
 function buzz(pattern: number | number[]) {
@@ -58,14 +55,20 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
   const [soundOn, setSoundOn] = useState(() => { try { return localStorage.getItem('snake-sound') !== 'off'; } catch { return true; } });
   const [vibrationOn, setVibrationOn] = useState(() => { try { return localStorage.getItem('snake-vibration') !== 'off'; } catch { return true; } });
   const soundRef = useRef(soundOn);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownRef = useRef<number | null>(null);
+  const countdownTimerRef = useRef<number | null>(null);
   const vibrationRef = useRef(vibrationOn);
   const [isOpen, setIsOpen] = useState(false);
   useEffect(() => { soundRef.current = soundOn; try { localStorage.setItem('snake-sound', soundOn ? 'on' : 'off'); } catch {} }, [soundOn]);
   useEffect(() => { vibrationRef.current = vibrationOn; try { localStorage.setItem('snake-vibration', vibrationOn ? 'on' : 'off'); } catch {} }, [vibrationOn]);
-  useEffect(() => { onReady?.(); }, [onReady]);
+  useEffect(() => { onReady?.(); return () => { if (countdownTimerRef.current !== null) window.clearInterval(countdownTimerRef.current); void audioContextRef.current?.close(); }; }, [onReady]);
   const touchStartRef = useRef<{x:number;y:number}|null>(null);
 
   const reset = useCallback((nextMode: Mode) => {
+    if (countdownTimerRef.current !== null) window.clearInterval(countdownTimerRef.current);
+    countdownTimerRef.current = null; countdownRef.current = null; setCountdown(null);
     const state = stateRef.current;
     state.mode = nextMode;
     state.snake = startSnake(colsRef.current, rowsRef.current);
@@ -126,18 +129,15 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
     const step = () => {
       const state = stateRef.current;
       if (state.mode === 'demo') {
-        // A gentle loop makes the classic game legible before anyone presses Play.
-        state.elapsed += 1;
-        if (state.elapsed % 7 === 0) {
-          const cols = colsRef.current, rows = rowsRef.current;
-          const horizontal = Math.max(4, cols - 4), vertical = Math.max(3, rows - 4);
-          const cycle = Math.floor(state.elapsed / 7) % (horizontal * 2 + vertical * 2);
-          if (cycle < horizontal) state.queued = 'right';
-          else if (cycle < horizontal + vertical) state.queued = 'down';
-          else if (cycle < horizontal * 2 + vertical) state.queued = 'left';
-          else state.queued = 'up';
-          if (cycle === 0) { state.snake = startSnake(cols, rows); state.direction = 'right'; }
-        }
+        // Autoplay genuinely plays Snake: chase the apple and reject unsafe moves.
+        const headNow = state.snake[0];
+        const candidates = (['right','down','left','up'] as Direction[])
+          .filter(d => !((state.direction === 'right' && d === 'left') || (state.direction === 'left' && d === 'right') || (state.direction === 'up' && d === 'down') || (state.direction === 'down' && d === 'up')))
+          .map(d => ({ d, p: { x: headNow.x + VECTORS[d].x, y: headNow.y + VECTORS[d].y } }))
+          .filter(({p}) => p.x >= 0 && p.x < colsRef.current && p.y >= 0 && p.y < rowsRef.current && !state.snake.slice(0, same(p, state.food) ? undefined : -1).some(part => same(part,p)));
+        candidates.sort((a,b) => (Math.abs(a.p.x-state.food.x)+Math.abs(a.p.y-state.food.y))-(Math.abs(b.p.x-state.food.x)+Math.abs(b.p.y-state.food.y)));
+        if (candidates.length) state.queued = candidates[0].d;
+        else { state.snake = startSnake(colsRef.current, rowsRef.current); state.direction = 'right'; state.queued = 'right'; }
       }
       state.direction = state.queued;
       const vector = VECTORS[state.direction];
@@ -163,7 +163,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         if (hitWall || body.some(part => same(part, next))) {
           state.mode = 'over';
           setMode('over');
-          if (soundRef.current) playGameTone(150, .22);
+          if (soundRef.current) playGameTone(audioContextRef.current, 150, .22);
           if (vibrationRef.current) buzz([45,35,70]);
           return;
         }
@@ -172,7 +172,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
       state.snake.unshift(next);
       if (same(next, state.food)) {
         if (state.mode === 'playing') {
-          if (soundRef.current) playGameTone(660, .09);
+          if (soundRef.current) playGameTone(audioContextRef.current, 660, .09);
           if (vibrationRef.current) buzz(24);
           state.score += 10;
           setScore(state.score);
@@ -186,7 +186,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
 
     const draw = (time: number) => {
       const state = stateRef.current;
-      if (state.mode === 'playing') {
+      if (state.mode === 'playing' && countdownRef.current === null) {
         if (!lastTime) lastTime = time;
         accumulator += Math.min(time - lastTime, 80);
         lastTime = time;
@@ -199,9 +199,9 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
         if (!lastTime) lastTime = time;
         accumulator += Math.min(time - lastTime, 80);
         lastTime = time;
-        while (accumulator >= 220) {
+        while (accumulator >= 145) {
           step();
-          accumulator -= 220;
+          accumulator -= 145;
         }
       } else {
         lastTime = time;
@@ -309,7 +309,31 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [isOpen, reset]);
 
-  const startGame = () => { setIsOpen(true); reset('playing'); };
+  const startGame = () => {
+    setIsOpen(true);
+    try {
+      const AudioContextConstructor = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AudioContextConstructor) {
+        if (!audioContextRef.current) audioContextRef.current = new AudioContextConstructor();
+        if (audioContextRef.current.state === 'suspended') void audioContextRef.current.resume();
+        if (soundRef.current) playGameTone(audioContextRef.current, 520, .07);
+      }
+    } catch { /* Audio can be unavailable in some browsers. */ }
+    reset('playing');
+    countdownRef.current = 3; setCountdown(3);
+    let remaining = 3;
+    countdownTimerRef.current = window.setInterval(() => {
+      remaining -= 1;
+      if (remaining > 0) {
+        countdownRef.current = remaining; setCountdown(remaining);
+        if (soundRef.current) playGameTone(audioContextRef.current, remaining === 2 ? 440 : 360, .09);
+      } else {
+        if (countdownTimerRef.current !== null) window.clearInterval(countdownTimerRef.current);
+        countdownTimerRef.current = null; countdownRef.current = null; setCountdown(null);
+        if (soundRef.current) playGameTone(audioContextRef.current, 760, .13);
+      }
+    }, 1000);
+  };
   const closeGame = () => { setIsOpen(false); reset('demo'); };
   const handleSwipeStart = (event: React.TouchEvent<HTMLDivElement>) => {
     const touch = event.changedTouches[0];
@@ -347,6 +371,7 @@ export function PixelCatchGame({ onReady }: { onReady?: () => void }) {
     {isOpen && <div className="snake-modal-top"><span><b>Snake</b><small>ARROW KEYS · WASD · SWIPE</small></span><button type="button" aria-label="Exit game" onClick={closeGame}><span>×</span> Exit</button></div>}
     <div className={`game-board snake-board mode-${mode}`} ref={boardRef} tabIndex={0} role="application" aria-label="Snake game. Use arrow keys or WASD to move, or swipe to change direction." onKeyDown={handleKey} onTouchStart={handleSwipeStart} onTouchEnd={handleSwipeEnd}>
       <canvas ref={canvasRef} aria-hidden="true" />
+      {countdown !== null && <div className="snake-countdown" role="status" aria-live="assertive"><span>{countdown > 0 ? countdown : "GO!"}</span><small>GET READY</small></div>}
       {mode !== 'playing' && <button className="snake-start-button" type="button" onClick={startGame}>{mode === 'over' ? 'Play again' : 'Play Snake'} <span aria-hidden="true">↗</span></button>}
     </div>
     <div className="game-footer snake-footer"><span>{mode === 'playing' ? 'EAT · GROW · DON’T CRASH' : mode === 'over' ? 'RUN ENDED · TRY AGAIN' : 'CLASSIC SNAKE'}</span><span>SCORE <b>{String(score).padStart(3, '0')}</b></span><span>BEST <b>{String(best).padStart(3, '0')}</b></span><button type="button" className="game-setting" aria-pressed={soundOn} onClick={() => setSoundOn(value => !value)}>{soundOn ? 'Sound on' : 'Sound off'}</button><button type="button" className="game-setting" aria-pressed={vibrationOn} disabled={typeof navigator === 'undefined' || !('vibrate' in navigator)} onClick={() => setVibrationOn(value => !value)}>{typeof navigator !== 'undefined' && 'vibrate' in navigator ? (vibrationOn ? 'Vibration on' : 'Vibration off') : 'Haptics unavailable'}</button><button type="button" onClick={startGame}>{mode === 'playing' ? 'Restart' : 'Play'} <ArrowUpRight size={12}/></button></div>
