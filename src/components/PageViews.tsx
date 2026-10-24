@@ -23,10 +23,28 @@ export function PageViews() {
   useEffect(() => {
     const endpoint = import.meta.env.VITE_PAGEVIEWS_API_URL as string | undefined;
     if (!endpoint) { setAvailable(false); return; }
+
+    // Count each browser tab session once; refreshes reuse its recorded count.
+    const sessionKey = 'mtcx-portfolio-page-views-session';
+    const cachedViews = sessionStorage.getItem(sessionKey);
+    if (cachedViews !== null) {
+      const parsedViews = Number(cachedViews);
+      if (Number.isFinite(parsedViews) && parsedViews >= 0) {
+        setViews(parsedViews);
+        return;
+      }
+      sessionStorage.removeItem(sessionKey);
+    }
+
     const controller = new AbortController();
     fetch(endpoint, { method: 'POST', headers: { Accept: 'application/json' }, signal: controller.signal })
       .then(response => { if (!response.ok) throw new Error('Counter unavailable'); return response.json() as Promise<CounterResponse>; })
-      .then(data => { if (typeof data.pageViews === 'number' && Number.isFinite(data.pageViews)) setViews(data.pageViews); else setAvailable(false); })
+      .then(data => {
+        if (typeof data.pageViews === 'number' && Number.isFinite(data.pageViews)) {
+          sessionStorage.setItem(sessionKey, String(data.pageViews));
+          setViews(data.pageViews);
+        } else setAvailable(false);
+      })
       .catch(error => { if (!(error instanceof Error && error.name === 'AbortError')) setAvailable(false); });
     return () => controller.abort();
   }, []);
@@ -36,13 +54,11 @@ export function PageViews() {
   const visitorLabel = views === null ? 'Visitor number loading' : `You are the ${views}${ordinalSuffix(views)} visitor`;
 
   return (
-    <div className="page-views-line">
-      <span className="page-views" aria-label={visitorLabel}>
-        <Eye size={13} aria-hidden="true" />
-        <span className="page-views-label">You are the</span>
-        <strong>{views === null ? '—' : `${views}${ordinalSuffix(views)}`}</strong>
-        <span className="page-views-label">visitor</span>
-      </span>
-    </div>
+    <span className="page-views" aria-label={visitorLabel}>
+      <Eye size={13} aria-hidden="true" />
+      <span className="page-views-label">You are the</span>
+      <strong>{views === null ? '—' : `${views}${ordinalSuffix(views)}`}</strong>
+      <span className="page-views-label">visitor</span>
+    </span>
   );
 }
