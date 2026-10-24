@@ -493,3 +493,11 @@
 @keyframes vinyl-idle{to{transform:rotate(360deg)}}@keyframes waveform-dance{from{transform:scaleY(.45)}to{transform:scaleY(1)}}
 @media(max-width:760px){.favourite-song{max-width:none;margin-top:25px;padding:14px}.song-player-main{gap:14px;padding:16px 0 2px}.song-vinyl{width:76px;height:76px;flex-basis:76px}}
 @media(prefers-reduced-motion:reduce){.vinyl-disc,.song-waveform i{animation:none!important}}
+
+
+/* Snake countdown overlay */
+.snake-countdown{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(4,9,6,.58);backdrop-filter:blur(3px);pointer-events:none;color:#fff;text-align:center}
+.snake-countdown span{font:800 clamp(64px,12vw,112px)/.9 var(--font-mono,monospace);letter-spacing:-.08em;text-shadow:0 4px 32px rgba(0,0,0,.4);animation:snake-count-pop .22s ease-out both}
+.snake-countdown small{font:10px var(--font-mono,monospace);letter-spacing:.2em;color:rgba(255,255,255,.72)}
+@keyframes snake-count-pop{from{transform:scale(.72);opacity:.25}to{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.snake-countdown span{animation:none}}
